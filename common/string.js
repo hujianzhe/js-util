@@ -78,6 +78,29 @@ js_util.Common.buffer_to_bytes = function(dv) {
 	return bytes;
 };
 
+js_util.Common.buffer_concat = function(buff_arr) {
+	let total_length = 0;
+	for (const buf of buff_arr) {
+		total_length += buf.byteLength;
+	}
+	let new_buffer = new Uint8Array(total_length);
+	let offset = 0;
+	for (const buf of buff_arr) {
+		let dv;
+		if (buf instanceof DataView) {
+			dv = buf;
+		}
+		else {
+			dv = new DataView(buf);
+		}
+		const dv_length = dv.byteLength;
+		for (let i = 0; i < dv_length; ++i) {
+			new_buffer.setUint8(offset++, dv.getUint8(i));
+		}
+	}
+	return new_buffer.buffer;
+};
+
 js_util.Common.string_trim = function(string) {
 	return string.replace(/(^\s*)|(\s*$)/g, "");
 };

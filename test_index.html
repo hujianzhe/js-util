@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="base.css">
+	<script type="text/javascript" src="DOM/ajax.js"></script>
+	<script type="text/javascript" src="DOM/layout_xml.js"></script>
+</head>
+<body>
+</body>
+<script type="text/javascript">
+async function main() {
+	let ajax = js_util.DOM.ajax_open("get", "http://39.100.213.153/small_game_client/static_resource/layout_new.xml");
+	let result = await js_util.DOM.ajax_send(ajax, null, 3000);
+	if (!result) {
+		console.log("ajax error");
+		return;
+	}
+	let layout = new js_util.DOM.LayoutXML();
+	layout.parse_from_xml_node(result.responseXML.firstChild);
+	let dom = layout.dom_from_xml_node(layout.id_map.get("login_dialog"));
+	document.body.appendChild(dom);
+};
+main();
+</script>
+</html>

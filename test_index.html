@@ -7,11 +7,13 @@
 	<link rel="stylesheet" type="text/css" href="base.css">
 	<script type="text/javascript" src="DOM/ajax.js"></script>
 	<script type="text/javascript" src="DOM/layout_xml.js"></script>
+	<script type="text/javascript" src="DOM/websocket_client.js"></script>
 </head>
 <body>
 </body>
 <script type="text/javascript">
 async function main() {
+	// Test layout from XML
 	let ajax = js_util.DOM.ajax_open("get", "http://39.100.213.153/small_game_client/static_resource/layout_new.xml");
 	let result = await js_util.DOM.ajax_send(ajax, null, 3000);
 	if (!result) {
@@ -22,6 +24,19 @@ async function main() {
 	layout.parse_from_xml_node(result.responseXML.firstChild);
 	let dom = layout.dom_from_xml_node(layout.id_map.get("login_dialog"));
 	document.body.appendChild(dom);
+	// Test WebsocketClient
+	let ws_client = new js_util.DOM.WebSocketClient();
+	result = await ws_client.connect("ws://60.204.155.222:51101/");
+	if (!result) {
+		console.log("ws client connect error");
+		return;
+	}
+	let session = new js_util.DOM.WebSocketClientSession();
+	session.replace_socket(ws_client);
+	session.onclose = () => {
+		console.log("ws_client disconnect....");
+	};
+	console.log("ws client connect success");
 };
 main();
 </script>

@@ -8,7 +8,7 @@ js_util.DOM.ajax_open = function(method, url, user = "", pwd = "") {
 };
 
 js_util.DOM.ajax_send = function(xhttp, data, timeout_msec = -1) {
-	let promise = new Promise((resolve) => {
+	return new Promise((resolve) => {
 		xhttp.onreadystatechange = function() {
 			if (this.readyState == 4) {
 				resolve(this);
@@ -20,7 +20,6 @@ js_util.DOM.ajax_send = function(xhttp, data, timeout_msec = -1) {
 				resolve(null);
 			}, timeout_msec);
 		}
+		xhttp.send(data);
 	});
-	xhttp.send(data);
-	return promise;
 };

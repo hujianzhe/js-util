@@ -1,6 +1,12 @@
 var js_util = js_util || {};
 js_util.Common = js_util.Common || {};
 
+js_util.Common.is_little_endian = function () {
+	var buffer = new ArrayBuffer(2);
+	new DataView(buffer).setUint16(0, 0x0001, true);
+	return new Int16Array(buffer)[0] === 1;
+};
+
 js_util.Common.string_to_utf8_bytes = function(str) {
 	let utf8 = [];
 	for (let i = 0; i < str.length; i++) {

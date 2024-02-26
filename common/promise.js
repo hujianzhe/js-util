@@ -29,7 +29,7 @@ js_util.Common.promise_sleep = async function(ms) {
     }
 };
 
-js_util.Common.setTimeoutEx = function(fn, ms) {
+js_util.Common.set_timeout_ex = function(fn, ms) {
     let ev = {
         _timerid: null
     };
@@ -53,7 +53,7 @@ js_util.Common.setTimeoutEx = function(fn, ms) {
     return ev;
 };
 
-js_util.Common.clearTimeoutEx = function(ev) {
+js_util.Common.clear_timeout_ex = function(ev) {
     if (ev._timerid) {
         clearTimeout(ev._timerid);
         ev._timerid = null;

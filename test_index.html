@@ -5,8 +5,11 @@
 	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
 	<title></title>
 	<link rel="stylesheet" type="text/css" href="base.css">
+	<script type="text/javascript" src="common/date.js"></script>
 	<script type="text/javascript" src="common/list.js"></script>
+	<script type="text/javascript" src="common/lock.js"></script>
 	<script type="text/javascript" src="common/promise.js"></script>
+	<script type="text/javascript" src="common/random.js"></script>
 	<script type="text/javascript" src="common/string.js"></script>
 	<script type="text/javascript" src="DOM/ajax.js"></script>
 	<script type="text/javascript" src="DOM/layout_xml.js"></script>
@@ -16,6 +19,16 @@
 </body>
 <script type="text/javascript">
 async function main() {
+	let lockmgr = new js_util.Common.LockManager();
+	let guard = lockmgr.new_guard();
+	await guard.lock("xxxx");
+	setTimeout(async () => {
+		let guard = lockmgr.new_guard();
+		await guard.lock("xxxx");
+		guard.unlock();
+	}, 1000);
+	await js_util.Common.promise_sleep(2000);
+	guard.unlock();
 	// Test layout from XML
 	let ajax = js_util.DOM.ajax_open("get", "http://39.100.213.153/small_game_client/static_resource/layout_new.xml");
 	let result = await js_util.DOM.ajax_send(ajax, null, 3000);

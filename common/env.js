@@ -7,7 +7,7 @@ js_util.Common.HOST_ENV = {
     NODE: 2
 };
 
-js_util.Common.get_host_env = function() {
+js_util.Common.host_env = function() {
     return (new Function("\
     try {\
         if (this === window)\
@@ -18,8 +18,8 @@ js_util.Common.get_host_env = function() {
     return js_util.Common.HOST_ENV.UNKKNOW;"))();
 };
 
-js_util.Common.get_host_env_name = function () {
-    const env = js_util.Common.get_host_env();
+js_util.Common.host_env_name = function () {
+    const env = js_util.Common.host_env();
     switch (env) {
         case js_util.Common.HOST_ENV.BROWSER:
             return "browser";

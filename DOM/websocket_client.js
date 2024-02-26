@@ -138,8 +138,8 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 };
 
 js_util.DOM.WebSocketClientSession = class NetSession {
-	constructor(id) {
-		this.id = id;
+	constructor(sid) {
+		this.sid = sid;
 		this.socket = null;
 		this.onclose = function() {};
 	}

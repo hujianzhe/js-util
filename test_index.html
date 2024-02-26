@@ -6,12 +6,14 @@
 	<title></title>
 	<link rel="stylesheet" type="text/css" href="base.css">
 	<script type="text/javascript" src="common/date.js"></script>
+	<script type="text/javascript" src="common/env.js"></script>
 	<script type="text/javascript" src="common/list.js"></script>
 	<script type="text/javascript" src="common/lock.js"></script>
 	<script type="text/javascript" src="common/promise.js"></script>
 	<script type="text/javascript" src="common/random.js"></script>
 	<script type="text/javascript" src="common/string.js"></script>
 	<script type="text/javascript" src="DOM/ajax.js"></script>
+	<script type="text/javascript" src="DOM/dom.js"></script>
 	<script type="text/javascript" src="DOM/layout_xml.js"></script>
 	<script type="text/javascript" src="DOM/websocket_client.js"></script>
 </head>
@@ -19,6 +21,9 @@
 </body>
 <script type="text/javascript">
 async function main() {
+	// Test execute env
+	console.log(`host env: ${js_util.Common.get_host_env()}, ${js_util.Common.get_host_env_name()}`);
+	// Test Lock
 	let lockmgr = new js_util.Common.LockManager();
 	let guard = lockmgr.new_guard();
 	await guard.lock("xxxx");

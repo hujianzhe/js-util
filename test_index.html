@@ -36,7 +36,7 @@ ${js_util.Common.host_browser_env()}, ${js_util.Common.host_browser_env_string()
 	await js_util.Common.promise_sleep(2000);
 	guard.unlock();
 	// Test layout from XML
-	let ajax = js_util.DOM.ajax_open("get", "http://39.100.213.153/small_game_client/static_resource/layout_new.xml");
+	let ajax = js_util.DOM.ajax_open("get", "http://39.100.213.153/small_game_client/static_resource/layout.xml");
 	let result = await js_util.DOM.ajax_send(ajax, null, 3000);
 	if (!result) {
 		console.log("ajax error");

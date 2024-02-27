@@ -1,4 +1,6 @@
-var js_util = js_util || {};
+if (typeof js_util === 'undefined') {
+    js_util = {};
+}
 js_util.DOM = js_util.DOM || {};
 
 js_util.DOM.WebSocketClient = class WebSocketClient {

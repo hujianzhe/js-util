@@ -1,4 +1,6 @@
-var js_util = js_util || {};
+if (typeof js_util === 'undefined') {
+    js_util = {};
+}
 js_util.Common = js_util.Common || {};
 
 if (!js_util.Common.PromiseTimeoutResult) {

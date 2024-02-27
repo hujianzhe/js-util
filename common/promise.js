@@ -93,17 +93,17 @@ js_util.Common.promise_timeout = function(promise_arg, timeout_msec) {
     });
 };
 
-js_util.Common.PromiseResolveMap = class PromiseResolveMap {
+js_util.Common.ResolveSet = class ResolveSet {
     constructor() {
-        this.default_resolve_id_seq = 0;
+        this.default_id_seq = 0;
         this.resolve_map = new Map();
 
-        this.next_resolve_id = function () {
+        this.next_id = function () {
             let v;
-            if (this.default_resolve_id_seq == Number.MAX_SAFE_INTEGER) {
-                this.default_resolve_id_seq = 1;
+            if (this.default_id_seq == Number.MAX_SAFE_INTEGER) {
+                this.default_id_seq = 1;
             }
-            while (0 == (v = this.default_resolve_id_seq++));
+            while (0 == (v = this.default_id_seq++));
             return v;
         };
     }

@@ -139,7 +139,7 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 	}
 };
 
-js_util.DOM.WebSocketClientSession = class NetSession {
+js_util.DOM.WebSocketClientSession = class WebSocketClientSession {
 	constructor(sid) {
 		this.sid = sid;
 		this.socket = null;

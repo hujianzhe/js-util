@@ -84,11 +84,45 @@ js_util.Common.promise_timeout = function(promise_arg, timeout_msec) {
                 clearTimeout(timer_id);
             }
             resolve(ret);
-        } catch (error) {
+        } catch (e) {
             if (timer_id) {
                 clearTimeout(timer_id);
             }
-            reject(error);
+            reject(e);
         }
     });
+};
+
+js_util.Common.PromiseResolveMap = class PromiseResolveMap {
+    constructor() {
+        this.default_resolve_id_seq = 0;
+        this.resolve_map = new Map();
+
+        this.next_resolve_id = function () {
+            let v;
+            if (this.default_resolve_id_seq == Number.MAX_SAFE_INTEGER) {
+                this.default_resolve_id_seq = 1;
+            }
+            while (0 == (v = this.default_resolve_id_seq++));
+            return v;
+        };
+    }
+
+    expect(resolve_id, opts = { timeout_msec : 5000 }) {
+        if (this.resolve_map.has(resolve_id)) {
+            return null;
+        }
+        return js_util.Common.promise_timeout((resolve) => {
+            this.resolve_map.set(resolve_id, resolve);
+        }, opts.timeout_msec);
+    }
+
+    resume(resolve_id, ret_data) {
+        const resolve = this.resolve_map.get(resolve_id);
+        if (!resolve) {
+            return;
+        }
+        this.resolve_map.delete(resolve_id);
+        resolve(ret_data);
+    }
 };

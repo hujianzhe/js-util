@@ -36,6 +36,18 @@ js_util.DOM.LayoutXML = class LayoutXML {
 		}
 	}
 
+	dom_from_xml_tag_name(tag) {
+		let xml_root = this.id_map.get(tag);
+		if (xml_root) {
+			return this.dom_from_xml_node(xml_root);
+		}
+		xml_root = this.class_map.get(tag);
+		if (xml_root) {
+			return this.dom_from_xml_node(xml_root);
+		}
+		return null;
+	}
+
 	dom_from_xml_node(xml_root) {
 		if (!xml_root) {
 			return null;
@@ -109,6 +121,9 @@ js_util.DOM.LayoutXML = class LayoutXML {
 				if (text) {
 					dom.textContent += xml_child.nodeValue;
 				}
+				continue;
+			}
+			if (xml_child.nodeName === "#comment") {
 				continue;
 			}
 			let child_dom = this.dom_from_xml_node(xml_child);

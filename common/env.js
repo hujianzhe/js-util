@@ -14,14 +14,15 @@ js_util.Common.HOST_BROWSER_ENV = {
 };
 
 js_util.Common.host_env = function() {
-    return (new Function("\
-    try {\
-        if (this === window)\
-            return js_util.Common.HOST_ENV.BROWSER;\
-        if (this === global)\
-            return js_util.Common.HOST_ENV.NODE;\
-    } catch(e) {}\
-    return js_util.Common.HOST_ENV.UNKKNOW;"))();
+    const is_node = (new Function("try { return global === this; } catch(e) {} return false;"))();
+    if (is_node) {
+        return js_util.Common.HOST_ENV.NODE;
+    }
+    const is_browser = (new Function("try { return window === this; } catch(e) {} return false;"))();
+    if (is_browser) {
+        return js_util.Common.HOST_ENV.BROWSER;
+    }
+    return js_util.Common.HOST_ENV.UNKKNOW;
 };
 
 js_util.Common.host_env_string = function () {

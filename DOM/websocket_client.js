@@ -16,7 +16,7 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 		this.recv_timestamp_msec = 0;
 		this.connecting_send_cache = null;
 		this.session = null;
-		this.onmessage = function(e) {};
+		this.onmessage = function(e) { void e; };
 		this.onheartbeat = function() {};
 	}
 

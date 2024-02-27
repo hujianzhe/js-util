@@ -123,6 +123,39 @@ js_util.DOM.current_full_screen_element = function () {
 			document.msFullscreenElement;
 };
 
+// DOM Test Object Supprted
+
+js_util.DOM.check_websocket_supported = function () {
+	return window.WebSocket ? true : false;
+};
+
+js_util.DOM.check_canvas_supported = function () {
+	try {
+		const canvas_dom = document.createElement("canvas");
+		if (canvas_dom && canvas_dom.getContext) {
+			return true;
+		}
+	} catch (e) { void e; }
+	return false;
+};
+
+js_util.DOM.check_webgl_supported = function () {
+	try {
+		const canvas_dom = document.createElement("canvas");
+		if (!canvas_dom || !canvas_dom.getContext) {
+			return false;
+		}
+		if (canvas_dom.getContext("webgl")) {
+			return true;
+		}
+		if (canvas_dom.getContext("experimental-webgl")) {
+			return true;
+		}
+	}
+	catch(e) { void e; }
+	return false;
+};
+
 // DOM compatible
 
 js_util.DOM.create_element = function (tag_name) {

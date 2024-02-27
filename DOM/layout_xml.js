@@ -165,17 +165,4 @@ js_util.DOM.LayoutXML = class LayoutXML {
 		}
 		dom.style.cssText += cssText;
 	}
-
-	static dom_set_style_user_select(dom, value) {
-		const attrs = [
-			"-moz-user-select",
-			"-webkit-user-select",
-			"-ms-user-select",
-			"-o-user-select",
-			"user-select"
-		];
-		for (const attr of attrs) {
-			dom.style[attr] = value;
-		}
-	}
 };

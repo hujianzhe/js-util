@@ -213,3 +213,26 @@ js_util.DOM.element_compatible = function (dom) {
 	}
 	return dom;
 };
+
+js_util.DOM.dom_disable_drag = function (dom) {
+	dom.onmouseenter = null;
+	dom.onmousedown = null;
+	dom.ontouchstart = null;
+	dom.onmouseup = null;
+	dom.ontouchend = null;
+	dom.onmousemove = null;
+	dom.ontouchmove = null;
+};
+
+js_util.DOM.dom_set_style_user_select = function (dom, value) {
+	const attrs = [
+		"-moz-user-select",
+		"-webkit-user-select",
+		"-ms-user-select",
+		"-o-user-select",
+		"user-select"
+	];
+	for (const attr of attrs) {
+		dom.style[attr] = value;
+	}
+};

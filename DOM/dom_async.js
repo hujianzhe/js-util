@@ -34,17 +34,20 @@ js_util.DOM.ajax_send = function(xhttp, data, timeout_msec = -1) {
 	});
 };
 
-js_util.DOM.script_load_async = function (url, timeout_msec = -1) {
+js_util.DOM.script_load_async = function (url, opts = {
+	timeout_msec : -1,
+	execute: true
+}) {
 	let script = document.createElement('script');
 	script.type = 'text/javascript';
 	return new Promise((resolve, reject) => {
 		let timer_id = null;
-		if (timeout_msec >= 0) {
+		if (opts.timeout_msec >= 0) {
 			timer_id = setTimeout(() => {
 				clearTimeout(timer_id);
 				timer_id = null;
 				resolve(null);
-			}, timeout_msec);
+			}, opts.timeout_msec);
 		}
 		if (script.readyState) {
 			// IE
@@ -69,6 +72,8 @@ js_util.DOM.script_load_async = function (url, timeout_msec = -1) {
 			};
 		}
 		script.src = url;
-		document.head.appendChild(script);
+		if (opts.execute) {
+			document.head.appendChild(script);
+		}
 	});
 };

@@ -26,41 +26,41 @@ async function main() {
 	// Test execute env
 	console.log(`host env: ${js_util.Common.host_env()}, ${js_util.Common.host_env_string()}, \
 ${js_util.Common.host_browser_env()}, ${js_util.Common.host_browser_env_string()}`);
-	// Test Lock
-	let lockmgr = new js_util.Common.LockManager();
-	let guard = lockmgr.new_guard();
-	await guard.lock("xxxx");
-	setTimeout(async () => {
-		let guard = lockmgr.new_guard();
-		await guard.lock("xxxx");
-		guard.unlock();
-	}, 1000);
-	await js_util.Common.promise_sleep(2000);
-	guard.unlock();
-	// Test layout from XML
-	let ajax = js_util.DOM.ajax_open("get", "http://39.100.213.153/small_game_client/static_resource/layout.xml");
-	let result = await js_util.DOM.ajax_send(ajax, null, 3000);
-	if (!result) {
-		console.log("ajax error");
-		return;
-	}
-	let layout = new js_util.DOM.LayoutXML();
-	layout.parse_from_xml_node(result.responseXML.firstChild);
-	let dom = layout.dom_from_xml_tag_name("login_dialog");
-	document.body.appendChild(dom);
-	// Test WebsocketClient
-	let ws_client = new js_util.DOM.WebSocketClient();
-	result = await ws_client.connect("ws://60.204.155.222:51101/");
-	if (!result) {
-		console.log("ws client connect error");
-		return;
-	}
-	let session = new js_util.DOM.WebSocketClientSession();
-	session.replace_socket(ws_client);
-	session.onclose = () => {
-		console.log("ws_client disconnect....");
-	};
-	console.log("ws client connect success");
+	// // Test Lock
+	// let lockmgr = new js_util.Common.LockManager();
+	// let guard = lockmgr.new_guard();
+	// await guard.lock("xxxx");
+	// setTimeout(async () => {
+	// 	let guard = lockmgr.new_guard();
+	// 	await guard.lock("xxxx");
+	// 	guard.unlock();
+	// }, 1000);
+	// await js_util.Common.promise_sleep(2000);
+	// guard.unlock();
+	// // Test layout from XML
+	// let ajax = js_util.DOM.ajax_open("get", "http://39.100.213.153/small_game_client/static_resource/layout.xml");
+	// let result = await js_util.DOM.ajax_send(ajax, null, 3000);
+	// if (!result) {
+	// 	console.log("ajax error");
+	// 	return;
+	// }
+	// let layout = new js_util.DOM.LayoutXML();
+	// layout.parse_from_xml_node(result.responseXML.firstChild);
+	// let dom = layout.dom_from_xml_tag_name("login_dialog");
+	// document.body.appendChild(dom);
+	// // Test WebsocketClient
+	// let ws_client = new js_util.DOM.WebSocketClient();
+	// result = await ws_client.connect("ws://60.204.155.222:51101/");
+	// if (!result) {
+	// 	console.log("ws client connect error");
+	// 	return;
+	// }
+	// let session = new js_util.DOM.WebSocketClientSession();
+	// session.replace_socket(ws_client);
+	// session.onclose = () => {
+	// 	console.log("ws_client disconnect....");
+	// };
+	// console.log("ws client connect success");
 };
 main();
 </script>

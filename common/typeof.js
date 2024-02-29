@@ -26,10 +26,8 @@ js_util.Common.type_of = function (v) {
 };
 
 js_util.Common.inherit = function (child_class, parent_class) {
-	(function() {
-		let Super = function() {};
-		Super.prototype = parent_class.prototype;
-		child_class.prototype = new Super();
-	})();
+    let f = function() {};
+    f.prototype = parent_class.prototype;
+    child_class.prototype = new f();
 	child_class.prototype.constructor = child_class;
 };

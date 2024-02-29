@@ -175,20 +175,6 @@ js_util.DOM.remove_element = function (dom) {
 };
 
 js_util.DOM.element_compatible = function (dom) {
-	if (!dom.addEventListener) {
-		if (dom.attachEvent) {
-			dom.addEventListener = function(evtype, fn) {
-				dom.attachEvent("on" + evtype, fn);
-			};
-		}
-	}
-	if (!dom.removeEventListener) {
-		if (dom.detachEvent) {
-			dom.removeEventListener = function(evtype, fn) {
-				dom.detachEvent("on" + evtype, fn);
-			};
-		}
-	}
 	if (!dom.requestFullscreen) {
 		if (dom.mozRequestFullScreen) {
 			dom.requestFullscreen = dom.mozRequestFullScreen;

@@ -15,6 +15,7 @@
 	<script type="text/javascript" src="common/typeof.js"></script>
 
 	<script type="text/javascript" src="DOM/dom.js"></script>
+	<script type="text/javascript" src="DOM/keyboard.js"></script>
 	<script type="text/javascript" src="DOM/dom_async.js"></script>
 	<script type="text/javascript" src="DOM/layout_xml.js"></script>
 	<script type="text/javascript" src="DOM/websocket_client.js"></script>
@@ -33,10 +34,12 @@ ${js_util.Common.host_browser_env()}, ${js_util.Common.host_browser_env_string()
 	// setTimeout(async () => {
 	// 	let guard = lockmgr.new_guard();
 	// 	await guard.lock("xxxx");
+	// 	console.log("end2");
 	// 	guard.unlock();
 	// }, 1000);
 	// await js_util.Common.promise_sleep(2000);
 	// guard.unlock();
+	// console.log("end1");
 	// // Test layout from XML
 	// let ajax = js_util.DOM.ajax_open("get", "http://39.100.213.153/small_game_client/static_resource/layout.xml");
 	// let result = await js_util.DOM.ajax_send(ajax, null, 3000);
@@ -61,6 +64,21 @@ ${js_util.Common.host_browser_env()}, ${js_util.Common.host_browser_env_string()
 	// 	console.log("ws_client disconnect....");
 	// };
 	// console.log("ws client connect success");
+	// // Test Keyboard Event
+	// document.addEventListener('keydown', function (e) {
+	// 	const key_state = js_util.DOM.KeyboardListener.key_state(e.code);
+	// 	const presist_timelen = key_state.press_timestamp - key_state.press_start_timestamp;
+	// 	let elapsed_timelen = key_state.press_start_timestamp - key_state.release_timestamp;
+	// 	if (key_state.press_total_times === 1) {
+	// 		elapsed_timelen = 0;
+	// 	}
+	// 	console.log(`keydown: ${key_state.pressed}, presist_timelen: ${presist_timelen}, elapsed_timelen: ${elapsed_timelen}`);
+	// }, true);
+	// document.addEventListener('keyup', function (e) {
+	// 	const key_state = js_util.DOM.KeyboardListener.key_state(e.code);
+	// 	const presist_timelen = key_state.release_timestamp - key_state.press_start_timestamp;
+	// 	console.log(`keyup: ${key_state.pressed}, presist_timelen: ${presist_timelen}`);
+	// }, true);
 };
 main();
 </script>

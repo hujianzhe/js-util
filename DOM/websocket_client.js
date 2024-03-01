@@ -73,9 +73,36 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 		}
 		this.socket = ws;
 		let self = this;
-		ws.onmessage = (e) => {
+
+		function start_heartbeat(self) {
+			const interval_sec = self.opts.heartbeat_interval_sec;
+			if (interval_sec <= 0) {
+				return;
+			}
+			const max_times = self.opts.heartbeat_max_times;
+			if (max_times <= 0) {
+				return;
+			}
+			self.heartbeat_do_times = 0;
+			if (self.heartbeat_timerid) {
+				clearTimeout(self.heartbeat_timerid);
+			}
+			self.heartbeat_timerid = setTimeout(function proc() {
+				clearTimeout(self.heartbeat_timerid);
+				if (self.heartbeat_do_times >= self.heartbeat_max_times) {
+					self.heartbeat_timerid = null;
+					self.close();
+					return;
+				}
+				self.onheartbeat();
+				self.heartbeat_do_times++;
+				self.heartbeat_timerid = setTimeout(proc, interval_sec * 1000);
+			}, interval_sec * 1000);
+		}
+
+		ws.onmessage = function (e) {
 			self.recv_timestamp_msec = new Date().getTime();
-			self._private_start_heartbeat();
+			start_heartbeat(self);
 			self.onmessage(e);
 		};
 		ws.onclose = (e) => {
@@ -93,13 +120,13 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 					self.close();
 				}, self.opts.connect_timeout_msec);
 			}
-			ws.onopen = (e) => {
+			ws.onopen = function () {
 				if (self.connect_timerid) {
 					clearTimeout(self.connect_timerid);
 					self.connect_timerid = null;
 				}
 				self.recv_timestamp_msec = new Date().getTime();
-				self._private_start_heartbeat();
+				start_heartbeat(self);
 				if (self.connecting_send_cache) {
 					for (const data of self.connecting_send_cache) {
 						ws.send(data);
@@ -109,33 +136,6 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 				resolve(self);
 			};
 		});
-	}
-
-	_private_start_heartbeat() {
-		const interval_sec = this.opts.heartbeat_interval_sec;
-		if (interval_sec <= 0) {
-			return;
-		}
-		const max_times = this.opts.heartbeat_max_times;
-		if (max_times <= 0) {
-			return;
-		}
-		let self = this;
-		this.heartbeat_do_times = 0;
-		if (this.heartbeat_timerid) {
-			clearTimeout(this.heartbeat_timerid);
-		}
-		this.heartbeat_timerid = setTimeout(function proc() {
-			clearTimeout(self.heartbeat_timerid);
-			if (self.heartbeat_do_times >= self.heartbeat_max_times) {
-				self.heartbeat_timerid = null;
-				self.close();
-				return;
-			}
-			self.onheartbeat();
-			self.heartbeat_do_times++;
-			self.heartbeat_timerid = setTimeout(proc, interval_sec * 1000);
-		}, interval_sec * 1000);
 	}
 };
 

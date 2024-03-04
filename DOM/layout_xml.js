@@ -95,7 +95,8 @@ js_util.DOM.LayoutXML = class LayoutXML {
 		/* assign DOM style */
 		if (xml_node_attrs.style_ids) {
 			const style_ids = xml_node_attrs.style_ids.value.split(",");
-			for (const style_id of style_ids) {
+			for (let style_id of style_ids) {
+				style_id = style_id.replace(/(^\s*)|(\s*$)/g, "");
 				const style_value = this.style_map.get(style_id);
 				if (!style_value) {
 					continue;
@@ -109,7 +110,8 @@ js_util.DOM.LayoutXML = class LayoutXML {
 		if (xml_ref_attrs) {
 			if (xml_ref_attrs.style_ids) {
 				const style_ids = xml_ref_attrs.style_ids.value.split(",");
-				for (const style_id of style_ids) {
+				for (let style_id of style_ids) {
+					style_id = style_id.replace(/(^\s*)|(\s*$)/g, "");
 					const style_value = this.style_map.get(style_id);
 					if (!style_value) {
 						continue;

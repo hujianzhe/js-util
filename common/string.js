@@ -109,6 +109,6 @@ js_util.Common.buffer_concat = function(buff_arr) {
 	return new_buffer.buffer;
 };
 
-js_util.Common.string_trim = function(string) {
-	return string.replace(/(^\s*)|(\s*$)/g, "");
+js_util.Common.string_trim = function(str) {
+	return str.replace(/(^\s*)|(\s*$)/g, "");
 };

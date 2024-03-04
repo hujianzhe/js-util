@@ -158,6 +158,8 @@ js_util.DOM.check_webgl_supported = function () {
 	return false;
 };
 
+// DOM Object Operator
+
 js_util.DOM.element_compatible = function (dom) {
 	if (!dom.requestFullscreen) {
 		if (dom.mozRequestFullScreen) {
@@ -182,18 +184,6 @@ js_util.DOM.element_compatible = function (dom) {
 		}
 	}
 	return dom;
-};
-
-js_util.DOM.create_div_same_proportion = function (w, h) {
-	let div = document.createElement('div');
-	div.style['position'] = 'relative';
-	div.style['width'] = w;
-	div.style['height'] = '';
-	div.style['padding-bottom'] = h;
-	let sub_div = document.createElement('div');
-	sub_div.style.cssText = "position: absolute; width: 100%; height: 100%;";
-	div.appendChild(sub_div);
-	return div;
 };
 
 js_util.DOM.dom_disable_drag = function (dom) {

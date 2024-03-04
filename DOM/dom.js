@@ -158,22 +158,6 @@ js_util.DOM.check_webgl_supported = function () {
 	return false;
 };
 
-// DOM compatible
-
-js_util.DOM.create_element = function (tag_name) {
-	let dom = document.createElement(tag_name);
-	if (!dom) {
-		return null;
-	}
-	return js_util.DOM.element_compatible(dom);
-};
-
-js_util.DOM.remove_element = function (dom) {
-	if (dom.parentNode) {
-		dom.parentNode.removeChild(dom);
-	}
-};
-
 js_util.DOM.element_compatible = function (dom) {
 	if (!dom.requestFullscreen) {
 		if (dom.mozRequestFullScreen) {

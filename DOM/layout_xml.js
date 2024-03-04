@@ -39,15 +39,20 @@ js_util.DOM.LayoutXML = class LayoutXML {
 	}
 
 	dom_from_xml_tag_name(tag) {
-		let xml_root = this.id_map.get(tag);
-		if (xml_root) {
-			return this.dom_from_xml_node(xml_root);
+		let xml_root;
+		if (!tag) {
+			return null;
 		}
-		xml_root = this.class_map.get(tag);
-		if (xml_root) {
-			return this.dom_from_xml_node(xml_root);
+		if (tag[0] != '.') {
+			xml_root = this.id_map.get(tag);
 		}
-		return null;
+		else {
+			xml_root = this.class_map.get(tag.substr(1));
+		}
+		if (!xml_root) {
+			return null;
+		}
+		return this.dom_from_xml_node(xml_root);
 	}
 
 	dom_from_xml_node(xml_root) {

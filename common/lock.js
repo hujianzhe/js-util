@@ -93,15 +93,6 @@ if (!js_util.Common.LockManager) {
         }
     }
 
-    function lockmgr_private_get_or_new_lock(mgr, name) {
-        let lock = mgr.lockMap.get(name);
-        if (!lock) {
-            lock = new LockImpl(name);
-            mgr.lockMap.set(name, lock);
-        }
-        return lock;
-    }
-
     class LockGuard {
         constructor(mgr, owner) {
             this.owner = owner;
@@ -113,7 +104,11 @@ if (!js_util.Common.LockManager) {
             if (this.lk) {
                 throw new Error(`lock has locked, name: ${this.lk.name}`);
             }
-            let lk = lockmgr_private_get_or_new_lock(this.mgr, name);
+            let lk = this.mgr.lockMap.get(name);
+            if (!lk) {
+                lk = new LockImpl(name);
+                this.mgr.lockMap.set(name, lk);
+            }
             if (!lk.try_acquire(this.owner)) {
                 return false;
             }
@@ -125,7 +120,11 @@ if (!js_util.Common.LockManager) {
             if (this.lk) {
                 throw new Error(`lock has locked, name: ${this.lk.name}`);
             }
-            let lk = lockmgr_private_get_or_new_lock(this.mgr, name);
+            let lk = this.mgr.lockMap.get(name);
+            if (!lk) {
+                lk = new LockImpl(name);
+                this.mgr.lockMap.set(name, lk);
+            }
             await lk.acquire(this.owner);
             this.lk = lk;
         }

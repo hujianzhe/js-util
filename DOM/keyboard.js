@@ -72,5 +72,5 @@ if (!js_util.DOM.KeyboardListener) {
             state.release_timestamp = now;
             state.press_timestamp = now;
         }
-	});
+	}, true);
 };

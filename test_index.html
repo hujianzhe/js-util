@@ -16,7 +16,9 @@
 	<script type="text/javascript" src="common/typeof.js"></script>
 
 	<script type="text/javascript" src="DOM/dom.js"></script>
+	<script type="text/javascript" src="DOM/keybutton_state.js"></script>
 	<script type="text/javascript" src="DOM/keyboard.js"></script>
+	<script type="text/javascript" src="DOM/mouse.js"></script>
 	<script type="text/javascript" src="DOM/dom_async.js"></script>
 	<script type="text/javascript" src="DOM/layout_xml.js"></script>
 	<script type="text/javascript" src="DOM/websocket_client.js"></script>
@@ -80,6 +82,17 @@ ${js_util.Common.host_browser_env()}, ${js_util.Common.host_browser_env_string()
 	// 	const presist_timelen = key_state.release_timestamp - key_state.press_start_timestamp;
 	// 	console.log(`keyup: ${key_state.pressed}, presist_timelen: ${presist_timelen}`);
 	// });
+	// // Test Mouse
+	// document.addEventListener('dblclick', function (e) {
+	// 	const state = js_util.DOM.MouseListener.button_state(e.button);
+	// 	console.log('dblclick');
+	// 	console.log(state);
+	// });
+	// window.addEventListener('mousemove', function (e) {
+	// 	const oldX = js_util.DOM.MouseListener.last_client_x;
+	// 	const oldY = js_util.DOM.MouseListener.last_client_y;
+	// 	console.log(`old: (${oldX}, ${oldY}), e: (${e.clientX}, ${e.clientY})`);
+	// }, true);
 };
 main();
 </script>

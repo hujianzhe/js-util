@@ -11,7 +11,7 @@ if (!js_util.DOM.KeyboardListener) {
         }
     }
 
-    class KeyboardListener {
+    js_util.DOM.KeyboardListener = class KeyboardListener {
         constructor() {
             this.key_states_map = new Map();
         }
@@ -20,16 +20,16 @@ if (!js_util.DOM.KeyboardListener) {
             return this.key_states_map.get(code) || new KeyboardKeyState(code);
         }
     }
-    js_util.DOM.KeyboardListener = new KeyboardListener();
+    js_util.DOM.KeyboardGlobalListener = new js_util.DOM.KeyboardListener();
 
     window.addEventListener('keydown', function (e) {
 		if ('Unidentified' === e.code || '' === e.code) {
             return;
         }
-        let state = js_util.DOM.KeyboardListener.key_states_map.get(e.code);
+        let state = js_util.DOM.KeyboardGlobalListener.key_states_map.get(e.code);
         if (!state) {
             state = new KeyboardKeyState(e.code);
-            js_util.DOM.KeyboardListener.key_states_map.set(e.code, state);
+            js_util.DOM.KeyboardGlobalListener.key_states_map.set(e.code, state);
         }
         state.down();
 	}, true);
@@ -38,16 +38,16 @@ if (!js_util.DOM.KeyboardListener) {
         if ('Unidentified' === e.code || '' === e.code) {
             return;
         }
-        let state = js_util.DOM.KeyboardListener.key_states_map.get(e.code);
+        let state = js_util.DOM.KeyboardGlobalListener.key_states_map.get(e.code);
         if (!state) {
             state = new KeyboardKeyState(e.code);
-            js_util.DOM.KeyboardListener.key_states_map.set(e.code, state);
+            js_util.DOM.KeyboardGlobalListener.key_states_map.set(e.code, state);
         }
         state.up();
     }, true);
 
     window.addEventListener('blur', function () {
-		for (let state of js_util.DOM.KeyboardListener.key_states_map.values()) {
+		for (let state of js_util.DOM.KeyboardGlobalListener.key_states_map.values()) {
             if (!state.pressed) {
                 continue;
             }

@@ -69,7 +69,7 @@ ${js_util.Common.host_browser_env()}, ${js_util.Common.host_browser_env_string()
 	// console.log("ws client connect success");
 	// // Test Keyboard Event
 	// document.addEventListener('keydown', function (e) {
-	// 	const key_state = js_util.DOM.KeyboardListener.key_state(e.code);
+	// 	const key_state = js_util.DOM.KeyboardGlobalListener.key_state(e.code);
 	// 	const presist_timelen = key_state.press_timestamp - key_state.press_start_timestamp;
 	// 	let elapsed_timelen = key_state.press_start_timestamp - key_state.release_timestamp;
 	// 	if (key_state.press_total_times === 1) {
@@ -78,19 +78,19 @@ ${js_util.Common.host_browser_env()}, ${js_util.Common.host_browser_env_string()
 	// 	console.log(`keydown: ${key_state.pressed}, presist_timelen: ${presist_timelen}, elapsed_timelen: ${elapsed_timelen}`);
 	// });
 	// document.addEventListener('keyup', function (e) {
-	// 	const key_state = js_util.DOM.KeyboardListener.key_state(e.code);
+	// 	const key_state = js_util.DOM.KeyboardGlobalListener.key_state(e.code);
 	// 	const presist_timelen = key_state.release_timestamp - key_state.press_start_timestamp;
 	// 	console.log(`keyup: ${key_state.pressed}, presist_timelen: ${presist_timelen}`);
 	// });
 	// // Test Mouse
 	// document.addEventListener('dblclick', function (e) {
-	// 	const state = js_util.DOM.MouseListener.button_state(e.button);
+	// 	const state = js_util.DOM.MouseGlobalListener.button_state(e.button);
 	// 	console.log('dblclick');
 	// 	console.log(state);
 	// });
 	// window.addEventListener('mousemove', function (e) {
-	// 	const oldX = js_util.DOM.MouseListener.last_client_x;
-	// 	const oldY = js_util.DOM.MouseListener.last_client_y;
+	// 	const oldX = js_util.DOM.MouseGlobalListener.client_x;
+	// 	const oldY = js_util.DOM.MouseGlobalListener.client_y;
 	// 	console.log(`old: (${oldX}, ${oldY}), e: (${e.clientX}, ${e.clientY})`);
 	// }, true);
 };

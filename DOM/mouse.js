@@ -11,42 +11,50 @@ if (!js_util.DOM.MouseListener) {
         }
     }
 
-    class MouseListener {
+    js_util.DOM.MouseListener = class MouseListener {
         constructor() {
             this.button_states_map = new Map();
-            this.last_client_x = 0;
-            this.last_client_y = 0;
-            this.last_screen_x = 0;
-            this.last_screen_y = 0;
+            this.position = null;
+        }
+
+        update_position(e) {
+            if (!this.position) {
+                this.position = {};
+            }
+            this.position.client_x = e.clientX;
+            this.position.client_y = e.clientY;
+            this.position.screen_x = e.screenX;
+            this.position.screen_y = e.screenY;
         }
 
         button_state(button) {
             return this.button_states_map.get(button) || new MouseButtonState(button);
         }
-    }
-    js_util.DOM.MouseListener = new MouseListener();
+    };
+    js_util.DOM.MouseGlobalListener = new js_util.DOM.MouseListener();
+
+    document.addEventListener('mouseenter', function (e) {
+        js_util.DOM.MouseGlobalListener.update_position(e);
+    });
 
     window.addEventListener('mousemove', function (e) {
-        js_util.DOM.MouseListener.last_client_x = e.clientX;
-        js_util.DOM.MouseListener.last_client_y = e.clientY;
-        js_util.DOM.MouseListener.last_screen_x = e.screenX;
-        js_util.DOM.MouseListener.last_screen_y = e.screenY;
+        js_util.DOM.MouseGlobalListener.update_position(e);
     });
 
     window.addEventListener('mousedown', function (e) {
-        let state = js_util.DOM.MouseListener.button_states_map.get(e.button);
+        let state = js_util.DOM.MouseGlobalListener.button_states_map.get(e.button);
         if (!state) {
             state = new MouseButtonState(e.button);
-            js_util.DOM.MouseListener.button_states_map.set(e.button, state);
+            js_util.DOM.MouseGlobalListener.button_states_map.set(e.button, state);
         }
         state.down();
     }, true);
 
     window.addEventListener('mouseup', function (e) {
-        let state = js_util.DOM.MouseListener.button_states_map.get(e.button);
+        let state = js_util.DOM.MouseGlobalListener.button_states_map.get(e.button);
         if (!state) {
             state = new MouseButtonState(e.button);
-            js_util.DOM.MouseListener.button_states_map.set(e.button, state);
+            js_util.DOM.MouseGlobalListener.button_states_map.set(e.button, state);
         }
         state.up();
     }, true);

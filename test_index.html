@@ -65,21 +65,21 @@ ${js_util.Common.host_browser_env()}, ${js_util.Common.host_browser_env_string()
 	// 	console.log("ws_client disconnect....");
 	// };
 	// console.log("ws client connect success");
-	// // Test Keyboard Event
-	// document.addEventListener('keydown', function (e) {
-	// 	const key_state = js_util.DOM.KeyboardListener.key_state(e.code);
-	// 	const presist_timelen = key_state.press_timestamp - key_state.press_start_timestamp;
-	// 	let elapsed_timelen = key_state.press_start_timestamp - key_state.release_timestamp;
-	// 	if (key_state.press_total_times === 1) {
-	// 		elapsed_timelen = 0;
-	// 	}
-	// 	console.log(`keydown: ${key_state.pressed}, presist_timelen: ${presist_timelen}, elapsed_timelen: ${elapsed_timelen}`);
-	// }, true);
-	// document.addEventListener('keyup', function (e) {
-	// 	const key_state = js_util.DOM.KeyboardListener.key_state(e.code);
-	// 	const presist_timelen = key_state.release_timestamp - key_state.press_start_timestamp;
-	// 	console.log(`keyup: ${key_state.pressed}, presist_timelen: ${presist_timelen}`);
-	// }, true);
+	// Test Keyboard Event
+	document.addEventListener('keydown', function (e) {
+		const key_state = js_util.DOM.KeyboardListener.key_state(e.code);
+		const presist_timelen = key_state.press_timestamp - key_state.press_start_timestamp;
+		let elapsed_timelen = key_state.press_start_timestamp - key_state.release_timestamp;
+		if (key_state.press_total_times === 1) {
+			elapsed_timelen = 0;
+		}
+		console.log(`keydown: ${key_state.pressed}, presist_timelen: ${presist_timelen}, elapsed_timelen: ${elapsed_timelen}`);
+	});
+	document.addEventListener('keyup', function (e) {
+		const key_state = js_util.DOM.KeyboardListener.key_state(e.code);
+		const presist_timelen = key_state.release_timestamp - key_state.press_start_timestamp;
+		console.log(`keyup: ${key_state.pressed}, presist_timelen: ${presist_timelen}`);
+	});
 };
 main();
 </script>

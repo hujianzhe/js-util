@@ -25,7 +25,7 @@ if (!js_util.DOM.KeyboardListener) {
     }
     js_util.DOM.KeyboardListener = new KeyboardListener();
 
-    document.addEventListener('keydown', function (e) {
+    window.addEventListener('keydown', function (e) {
 		if ('Unidentified' === e.code || '' === e.code) {
             return;
         }
@@ -43,7 +43,7 @@ if (!js_util.DOM.KeyboardListener) {
         state.press_timestamp = now;
 	}, true);
 
-    document.addEventListener('keyup', function (e) {
+    window.addEventListener('keyup', function (e) {
         if ('Unidentified' === e.code || '' === e.code) {
             return;
         }

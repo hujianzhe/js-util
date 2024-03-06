@@ -19,39 +19,51 @@ if (!js_util.DOM.KeyboardListener) {
         key_state(code) {
             return this.key_states_map.get(code) || new KeyboardKeyState(code);
         }
-    }
-    js_util.DOM.KeyboardGlobalListener = new js_util.DOM.KeyboardListener();
 
-    window.addEventListener('keydown', function (e) {
-		if ('Unidentified' === e.code || '' === e.code) {
-            return;
+        keydown(code) {
+            if ('Unidentified' === code || '' === code) {
+                return;
+            }
+            let state = this.key_states_map.get(code);
+            if (!state) {
+                state = new KeyboardKeyState(code);
+                this.key_states_map.set(code, state);
+            }
+            state.down();
         }
-        let state = js_util.DOM.KeyboardGlobalListener.key_states_map.get(e.code);
-        if (!state) {
-            state = new KeyboardKeyState(e.code);
-            js_util.DOM.KeyboardGlobalListener.key_states_map.set(e.code, state);
-        }
-        state.down();
-	}, true);
 
-    window.addEventListener('keyup', function (e) {
-        if ('Unidentified' === e.code || '' === e.code) {
-            return;
-        }
-        let state = js_util.DOM.KeyboardGlobalListener.key_states_map.get(e.code);
-        if (!state) {
-            state = new KeyboardKeyState(e.code);
-            js_util.DOM.KeyboardGlobalListener.key_states_map.set(e.code, state);
-        }
-        state.up();
-    }, true);
-
-    window.addEventListener('blur', function () {
-		for (let state of js_util.DOM.KeyboardGlobalListener.key_states_map.values()) {
-            if (!state.pressed) {
-                continue;
+        keyup(code) {
+            if ('Unidentified' === code || '' === code) {
+                return;
+            }
+            let state = this.key_states_map.get(code);
+            if (!state) {
+                state = new KeyboardKeyState(code);
+                this.key_states_map.set(code, state);
             }
             state.up();
         }
+
+        blur() {
+            for (let state of this.key_states_map.values()) {
+                if (!state.pressed) {
+                    continue;
+                }
+                state.up();
+            }
+        }
+    };
+    js_util.DOM.KeyboardGlobalListener = new js_util.DOM.KeyboardListener();
+
+    window.addEventListener('keydown', function (e) {
+        js_util.DOM.KeyboardGlobalListener.keydown(e.code);
+	}, true);
+
+    window.addEventListener('keyup', function (e) {
+        js_util.DOM.KeyboardGlobalListener.keyup(e.code);
+    }, true);
+
+    window.addEventListener('blur', function () {
+        js_util.DOM.KeyboardGlobalListener.blur();
 	});
 };

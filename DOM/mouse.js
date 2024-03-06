@@ -14,17 +14,23 @@ if (!js_util.DOM.MouseListener) {
     js_util.DOM.MouseListener = class MouseListener {
         constructor() {
             this.button_states_map = new Map();
-            this.position = null;
+            this.data = null;
         }
 
-        update_position(e) {
-            if (!this.position) {
-                this.position = {};
+        update(e) {
+            if (!this.data) {
+                this.data = {};
             }
-            this.position.client_x = e.clientX;
-            this.position.client_y = e.clientY;
-            this.position.screen_x = e.screenX;
-            this.position.screen_y = e.screenY;
+            this.data.clientX = e.clientX;
+            this.data.clientY = e.clientY;
+            this.data.screenX = e.screenX;
+            this.data.screenY = e.screenY;
+            this.data.region = e.region;
+            this.data.relatedTarget = e.relatedTarget;
+            this.data.shiftKey = e.shiftKey;
+            this.data.altKey = e.altKey;
+            this.data.ctrlKey = e.ctrlKey;
+            this.data.metaKey = e.metaKey;
         }
 
         button_state(button) {
@@ -34,11 +40,11 @@ if (!js_util.DOM.MouseListener) {
     js_util.DOM.MouseGlobalListener = new js_util.DOM.MouseListener();
 
     document.addEventListener('mouseenter', function (e) {
-        js_util.DOM.MouseGlobalListener.update_position(e);
+        js_util.DOM.MouseGlobalListener.update(e);
     });
 
     window.addEventListener('mousemove', function (e) {
-        js_util.DOM.MouseGlobalListener.update_position(e);
+        js_util.DOM.MouseGlobalListener.update(e);
     });
 
     window.addEventListener('mousedown', function (e) {

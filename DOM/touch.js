@@ -68,6 +68,10 @@ if (!js_util.DOM.TouchListener) {
                 state.up();
             }
         }
+
+		touchcancel(e) {
+			this.touchend(e);
+		}
     };
     js_util.DOM.TouchGlobalListener = new js_util.DOM.TouchListener();
 
@@ -82,4 +86,8 @@ if (!js_util.DOM.TouchListener) {
     window.addEventListener('touchend', function (e) {
         js_util.DOM.TouchGlobalListener.touchend(e);
     }, true);
+
+	window.addEventListener('touchcancel', function (e) {
+		js_util.DOM.TouchGlobalListener.touchcancel(e);
+	}, true);
 }

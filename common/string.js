@@ -4,7 +4,7 @@ if (typeof js_util === 'undefined') {
 js_util.Common = js_util.Common || {};
 
 js_util.Common.is_little_endian = function () {
-	var buffer = new ArrayBuffer(2);
+	let buffer = new ArrayBuffer(2);
 	new DataView(buffer).setUint16(0, 0x0001, true);
 	return new Int16Array(buffer)[0] === 1;
 };
@@ -112,3 +112,18 @@ js_util.Common.buffer_concat = function(buff_arr) {
 js_util.Common.string_trim = function(str) {
 	return str.replace(/(^\s*)|(\s*$)/g, "");
 };
+
+js_util.Common.dup_object = function (obj) {
+	if (typeof obj !== "object") {
+		return obj;
+	}
+	let newobj = {};
+	for (const key in obj) {
+		if (typeof obj[key] === "object") {
+			newobj[key] = js_util.Common.dup_object(obj[key]);
+		} else {
+			newobj[key] = obj[key];
+		}
+	}
+	return newobj;
+}

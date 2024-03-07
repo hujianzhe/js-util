@@ -160,6 +160,12 @@ js_util.DOM.check_webgl_supported = function () {
 
 // DOM Object Operator
 
+js_util.DOM.preventDefault = function (e) {
+	if (e.cancelable) {
+		e.preventDefault();
+	}
+};
+
 js_util.DOM.element_compatible = function (dom) {
 	if (!dom.requestFullscreen) {
 		if (dom.mozRequestFullScreen) {

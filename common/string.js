@@ -126,4 +126,4 @@ js_util.Common.dup_object = function (obj) {
 		}
 	}
 	return newobj;
-}
+};

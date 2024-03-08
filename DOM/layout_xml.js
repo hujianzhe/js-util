@@ -43,10 +43,10 @@ js_util.DOM.LayoutXML = class LayoutXML {
 		if (!tag) {
 			return null;
 		}
-		if (tag[0] != '.') {
-			xml_root = this.id_map.get(tag);
+		if (tag[0] === '#') {
+			xml_root = this.id_map.get(tag.substr(1));
 		}
-		else {
+		else if (tag[0] === '.') {
 			xml_root = this.class_map.get(tag.substr(1));
 		}
 		if (!xml_root) {

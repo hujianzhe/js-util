@@ -166,6 +166,14 @@ js_util.DOM.preventDefault = function (e) {
 	}
 };
 
+js_util.DOM.stopPropagation = function (e) {
+	e.stopPropagation();
+};
+
+js_util.DOM.stopImmediatePropagation = function (e) {
+	e.stopImmediatePropagation();
+};
+
 js_util.DOM.element_compatible = function (dom) {
 	if (!dom.requestFullscreen) {
 		if (dom.mozRequestFullScreen) {

@@ -166,6 +166,14 @@ js_util.DOM.preventDefault = function (e) {
 	}
 };
 
+js_util.DOM.add_prevent_default_event = function (dom, evtype, useCapture = false) {
+	dom.addEventListener(evtype, function (e) {
+		if (e.cancelable) {
+			e.preventDefault();
+		}
+	}, { passive: false, capture: useCapture });
+};
+
 js_util.DOM.stopPropagation = function (e) {
 	e.stopPropagation();
 };

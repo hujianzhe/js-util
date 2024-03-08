@@ -25,6 +25,8 @@ if (!js_util.DOM.MouseListener) {
             this.data.clientY = e.clientY;
             this.data.screenX = e.screenX;
             this.data.screenY = e.screenY;
+            this.data.pageX = e.pageX;
+            this.data.pageY = e.pageY;
             this.data.region = e.region;
             this.data.relatedTarget = e.relatedTarget;
             this.data.shiftKey = e.shiftKey;

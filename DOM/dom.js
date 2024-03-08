@@ -160,13 +160,21 @@ js_util.DOM.check_webgl_supported = function () {
 
 // DOM Object Operator
 
+js_util.DOM.stopPropagation = function (e) {
+	e.stopPropagation();
+};
+
+js_util.DOM.stopImmediatePropagation = function (e) {
+	e.stopImmediatePropagation();
+};
+
 js_util.DOM.preventDefault = function (e) {
 	if (e.cancelable) {
 		e.preventDefault();
 	}
 };
 
-js_util.DOM.add_prevent_default_event = function (dom, evtype, useCapture = false) {
+js_util.DOM.element_prevent_default_event = function (dom, evtype, useCapture = false) {
 	dom.addEventListener(evtype, function (e) {
 		if (e.cancelable) {
 			e.preventDefault();
@@ -174,12 +182,14 @@ js_util.DOM.add_prevent_default_event = function (dom, evtype, useCapture = fals
 	}, { passive: false, capture: useCapture });
 };
 
-js_util.DOM.stopPropagation = function (e) {
-	e.stopPropagation();
-};
-
-js_util.DOM.stopImmediatePropagation = function (e) {
-	e.stopImmediatePropagation();
+js_util.DOM.element_check_in_document = function (dom) {
+	do {
+		const parentNode = dom.parentNode;
+		if (!parentNode) {
+			return false;
+		}
+	} while (parentNode !== document);
+	return true;
 };
 
 js_util.DOM.element_compatible = function (dom) {

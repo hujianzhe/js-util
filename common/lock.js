@@ -53,9 +53,9 @@ if (!js_util.Common.LockManager) {
             if (this.try_acquire(owner)) {
                 return;
             }
-            let self = this;
+            let self_this = this;
             return new Promise((resolve) => {
-                self.waitArr.push({
+                self_this.waitArr.push({
                     resolve: resolve,
                     owner: owner
                 });

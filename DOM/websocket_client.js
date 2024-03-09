@@ -72,68 +72,68 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 			ws.binaryType = this.opts.binaryType;
 		}
 		this.socket = ws;
-		let self = this;
+		let self_this = this;
 
-		function start_heartbeat(self) {
-			const interval_sec = self.opts.heartbeat_interval_sec;
+		function start_heartbeat(ws_obj) {
+			const interval_sec = ws_obj.opts.heartbeat_interval_sec;
 			if (interval_sec <= 0) {
 				return;
 			}
-			const max_times = self.opts.heartbeat_max_times;
+			const max_times = ws_obj.opts.heartbeat_max_times;
 			if (max_times <= 0) {
 				return;
 			}
-			self.heartbeat_do_times = 0;
-			if (self.heartbeat_timerid) {
-				clearTimeout(self.heartbeat_timerid);
+			ws_obj.heartbeat_do_times = 0;
+			if (ws_obj.heartbeat_timerid) {
+				clearTimeout(ws_obj.heartbeat_timerid);
 			}
-			self.heartbeat_timerid = setTimeout(function proc() {
-				clearTimeout(self.heartbeat_timerid);
-				if (self.heartbeat_do_times >= self.heartbeat_max_times) {
-					self.heartbeat_timerid = null;
-					self.close();
+			ws_obj.heartbeat_timerid = setTimeout(function proc() {
+				clearTimeout(ws_obj.heartbeat_timerid);
+				if (ws_obj.heartbeat_do_times >= ws_obj.heartbeat_max_times) {
+					ws_obj.heartbeat_timerid = null;
+					ws_obj.close();
 					return;
 				}
-				self.onheartbeat();
-				self.heartbeat_do_times++;
-				self.heartbeat_timerid = setTimeout(proc, interval_sec * 1000);
+				ws_obj.onheartbeat();
+				ws_obj.heartbeat_do_times++;
+				ws_obj.heartbeat_timerid = setTimeout(proc, interval_sec * 1000);
 			}, interval_sec * 1000);
 		}
 
 		ws.onmessage = function (e) {
-			self.recv_timestamp_msec = new Date().getTime();
-			start_heartbeat(self);
-			self.onmessage(e);
+			self_this.recv_timestamp_msec = new Date().getTime();
+			start_heartbeat(self_this);
+			self_this.onmessage(e);
 		};
 		ws.onclose = (e) => {
-			self.close();
+			self_this.close();
 		};
 		ws.onerror = (e) => {
-			self.close();
+			self_this.close();
 		};
 		return new Promise((resolve) => {
-			if (self.opts.connect_timeout_msec >= 0) {
-				self.connect_timerid = setTimeout(() => {
-					clearTimeout(self.connect_timerid);
-					self.connect_timerid = null;
+			if (self_this.opts.connect_timeout_msec >= 0) {
+				self_this.connect_timerid = setTimeout(() => {
+					clearTimeout(self_this.connect_timerid);
+					self_this.connect_timerid = null;
 					resolve(null);
-					self.close();
-				}, self.opts.connect_timeout_msec);
+					self_this.close();
+				}, self_this.opts.connect_timeout_msec);
 			}
 			ws.onopen = function () {
-				if (self.connect_timerid) {
-					clearTimeout(self.connect_timerid);
-					self.connect_timerid = null;
+				if (self_this.connect_timerid) {
+					clearTimeout(self_this.connect_timerid);
+					self_this.connect_timerid = null;
 				}
-				self.recv_timestamp_msec = new Date().getTime();
-				start_heartbeat(self);
-				if (self.connecting_send_cache) {
-					for (const data of self.connecting_send_cache) {
+				self_this.recv_timestamp_msec = new Date().getTime();
+				start_heartbeat(self_this);
+				if (self_this.connecting_send_cache) {
+					for (const data of self_this.connecting_send_cache) {
 						ws.send(data);
 					}
-					self.connecting_send_cache = null;
+					self_this.connecting_send_cache = null;
 				}
-				resolve(self);
+				resolve(self_this);
 			};
 		});
 	}

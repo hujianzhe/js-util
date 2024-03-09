@@ -68,7 +68,7 @@ if (!js_util.DOM.TouchListener) {
                 state.update(touch);
                 state.down();
 
-				if (state.previous_) {
+				if (!state.previous_) {
 					state.previous_ = {};
 				}
 				state.previous_.screenX = touch.screenX;

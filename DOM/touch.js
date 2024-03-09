@@ -9,12 +9,15 @@ if (!js_util.DOM.TouchListener) {
             super();
             this.identifier = identifier;
             this.data = null;
+			this.previous_ = null;
         }
 
         update(e) {
             if (!this.data) {
                 this.data = {};
             }
+			this.data.movementX = 0;
+			this.data.movementY = 0;
             this.data.clientX = e.clientX;
             this.data.clientY = e.clientY;
             this.data.screenX = e.screenX;
@@ -42,6 +45,16 @@ if (!js_util.DOM.TouchListener) {
                     this.key_states_map.set(touch.identifier, state);
                 }
                 state.update(touch);
+
+				if (state.previous_) {
+					state.data.movementX = touch.screenX - state.previous_.screenX;
+					state.data.movementY = touch.screenY - state.previous_.screenY;
+				}
+				else {
+					state.previous_ = {};
+				}
+				state.previous_.screenX = touch.screenX;
+				state.previous_.screenY = touch.screenY;
             }
         }
 
@@ -54,6 +67,12 @@ if (!js_util.DOM.TouchListener) {
                 }
                 state.update(touch);
                 state.down();
+
+				if (state.previous_) {
+					state.previous_ = {};
+				}
+				state.previous_.screenX = touch.screenX;
+				state.previous_.screenY = touch.screenY;
             }
         }
 
@@ -77,7 +96,7 @@ if (!js_util.DOM.TouchListener) {
 
     window.addEventListener('touchmove', function (e) {
         js_util.DOM.TouchGlobalListener.touchmove(e);
-    });
+    }, true);
 
     window.addEventListener('touchstart', function (e) {
         js_util.DOM.TouchGlobalListener.touchstart(e);

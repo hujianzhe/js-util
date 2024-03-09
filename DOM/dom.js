@@ -182,6 +182,11 @@ js_util.DOM.element_prevent_default_event = function (dom, evtype, useCapture = 
 	}, { passive: false, capture: useCapture });
 };
 
+js_util.DOM.fn_to_worker_url = function (fn) {
+	const blob = new Blob([`(${fn.toString()})()`], { type: "text/javascript" });
+	return URL.createObjectURL(blob);
+};
+
 js_util.DOM.element_check_in_document = function (dom) {
 	do {
 		const parentNode = dom.parentNode;

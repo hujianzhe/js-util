@@ -139,25 +139,23 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 	}
 };
 
-js_util.DOM.WebSocketClientSession = class WebSocketClientSession {
-	constructor(sid) {
-		this.sid = sid;
-		this.socket = null;
-		this.onclose = function() {};
-	}
+js_util.DOM.WebSocketClientSession = function (sid) {
+	this.sid = sid;
+	this.socket = null;
+	this.onclose = function() {};
+};
 
-	replace_socket(ws_client) {
-		let old_socket = this.socket;
-		if (old_socket == ws_client) {
-			return null;
-		}
-		if (old_socket) {
-			old_socket.session = null;
-		}
-		if (ws_client) {
-			ws_client.session = this;
-		}
-		this.socket = ws_client;
-		return old_socket;
+js_util.DOM.WebSocketClientSession.prototype.replace_socket = function (ws_client) {
+	let old_socket = this.socket;
+	if (old_socket == ws_client) {
+		return null;
 	}
+	if (old_socket) {
+		old_socket.session = null;
+	}
+	if (ws_client) {
+		ws_client.session = this;
+	}
+	this.socket = ws_client;
+	return old_socket;
 };

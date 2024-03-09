@@ -71,11 +71,11 @@ if (!js_util.DOM.MouseListener) {
 
     document.addEventListener('mouseenter', function (e) {
         js_util.DOM.MouseGlobalListener.mouseenter(e);
-    });
+    }, true);
 
     window.addEventListener('mousemove', function (e) {
         js_util.DOM.MouseGlobalListener.mousemove(e);
-    });
+    }, true);
 
     window.addEventListener('mousedown', function (e) {
         js_util.DOM.MouseGlobalListener.mousedown(e.button);

@@ -5,6 +5,7 @@
 html {
 	width: 100%;
 	height: 100%;
+	overscroll-behavior: none;
 }
 body {
 	width: 100%;
@@ -12,6 +13,7 @@ body {
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
+	overscroll-behavior: none;
 }
 div {
 	-webkit-user-select: none;

@@ -94,6 +94,30 @@ async function main() {
 	// 	const oldY = js_util.DOM.MouseGlobalListener.data.clientY;
 	// 	console.log(`old: (${oldX}, ${oldY}), e: (${e.clientX}, ${e.clientY})`);
 	// }, true);
+	// // Test Worker
+	// const worker_url = js_util.DOM.fn_to_worker_url(async function () {
+	// 	self.addEventListener('message', function (e) {
+	// 		postMessage(e.data);
+	// 	});
+	// 	self.addEventListener('error', function (e) {
+	// 	});
+	// 	const script_root_path = 'http://39.100.213.153/small_game_client/';
+	// 	importScripts(script_root_path + 'js-util/DOM/websocket_client.js');
+	// 	let ws_client = new js_util.DOM.WebSocketClient();
+	// 	result = await ws_client.connect("ws://60.204.155.222:51101/");
+	// 	if (!result) {
+	// 		return;
+	// 	}
+	// 	postMessage("connect success");
+	// });
+	// let worker = new Worker(worker_url, { name: 'net_worker' });
+	// worker.addEventListener('message', function (e) {
+	// 	console.log(e.data);
+	// });
+	// worker.addEventListener('error', function (e) {
+	// 	console.log(e);
+	// });
+	// worker.postMessage("zhiyinnitaimei");
 };
 main();
 </script>

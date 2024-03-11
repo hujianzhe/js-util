@@ -4,12 +4,14 @@ if (typeof js_util === 'undefined') {
 js_util.DOM = js_util.DOM || {};
 
 js_util.DOM.WebSocketClient = class WebSocketClient {
-	constructor(opts = {
+	static default_constructor_params = {
 		binaryType: undefined,	// "arraybuffer" or "blob"
 		connect_timeout_msec: -1,
 		heartbeat_max_times: 0,
 		heartbeat_interval_sec: 0,
-	}) {
+	};
+
+	constructor(opts = WebSocketClient.default_constructor_params) {
 		this.socket = null;
 		this.opts = opts;
 		this.connect_timerid = null;

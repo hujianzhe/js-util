@@ -38,9 +38,9 @@ js_util.DOM.script_load_async = function (url, opts = {
 	timeout_msec : -1,
 	execute: true
 }) {
-	let script = document.createElement('script');
-	script.type = 'text/javascript';
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve) => {
+		let script = document.createElement('script');
+		script.type = 'text/javascript';
 		let timer_id = null;
 		if (opts.timeout_msec >= 0) {
 			timer_id = setTimeout(() => {

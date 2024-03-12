@@ -182,6 +182,15 @@ js_util.DOM.element_prevent_default_event = function (dom, evtype, useCapture = 
 	}, { passive: false, capture: useCapture });
 };
 
+js_util.DOM.element_event_once = function (dom, evtype, fn, opts) {
+	const opts_clone = structuredClone(opts);
+	function once_wrap_fn (e) {
+		dom.removeEventListener(evtype, once_wrap_fn, opts_clone);
+		fn(e);
+	};
+	dom.addEventListener(evtype, once_wrap_fn, opts_clone);
+};
+
 js_util.DOM.fn_to_worker_url = function (fn) {
 	const blob = new Blob([`(${fn.toString()})()`], { type: "text/javascript" });
 	return URL.createObjectURL(blob);

@@ -9,6 +9,13 @@ js_util.Common.is_little_endian = function () {
 	return new Int16Array(buffer)[0] === 1;
 };
 
+js_util.Common.buffer_to_dataview = function (v) {
+	if (v instanceof DataView) {
+		return v;
+	}
+	return new DataView(v.buffer || v, v.byteOffset || 0, v.byteLength);
+};
+
 js_util.Common.string_to_utf8_bytes = function(str) {
 	let utf8 = [];
 	for (let i = 0; i < str.length; i++) {
@@ -72,6 +79,7 @@ js_util.Common.utf8_bytes_to_string = function(utf8) {
 };
 
 js_util.Common.bytes_fill_buffer = function(bytes, dv, off) {
+	dv = js_util.Common.buffer_to_dataview(dv);
 	for (let i = 0; i < bytes.length; ++i) {
 		dv.setUint8(off + i, bytes[i]);
 	}
@@ -79,11 +87,16 @@ js_util.Common.bytes_fill_buffer = function(bytes, dv, off) {
 
 js_util.Common.buffer_to_bytes = function(dv) {
 	let bytes = [];
+	dv = js_util.Common.buffer_to_dataview(dv);
 	const byteLength = dv.byteLength;
 	for (let i = 0; i < byteLength; ++i) {
 		bytes.push(dv.getUint8(i));
 	}
 	return bytes;
+};
+
+js_util.Common.buffer_to_string = function(dv) {
+	return js_util.Common.utf8_bytes_to_string(js_util.Common.buffer_to_bytes(dv));
 };
 
 js_util.Common.buffer_concat = function(buff_arr) {
@@ -94,13 +107,7 @@ js_util.Common.buffer_concat = function(buff_arr) {
 	let new_buffer = new Uint8Array(total_length);
 	let offset = 0;
 	for (const buf of buff_arr) {
-		let dv;
-		if (buf instanceof DataView) {
-			dv = buf;
-		}
-		else {
-			dv = new DataView(buf);
-		}
+		const dv = js_util.Common.buffer_to_dataview(buf);
 		const dv_length = dv.byteLength;
 		for (let i = 0; i < dv_length; ++i) {
 			new_buffer.setUint8(offset++, dv.getUint8(i));

@@ -16,7 +16,7 @@ js_util.Common.buffer_to_dataview = function (v) {
 	return new DataView(v.buffer || v, v.byteOffset || 0, v.byteLength);
 };
 
-js_util.Common.string_to_camel_case = function (str) {
+js_util.Common.string_to_camel_style = function (str) {
 	return str.substring(0, 1) + str.substring(1).replace(/_([a-z])(?=[a-z]|$)/g, function ($0, $1) {
 		void $0;
 		return $1.toUpperCase();

@@ -31,8 +31,10 @@ js_util.DOM.LayoutXML = class LayoutXML {
 			if (xml_node.id) {
 				this.id_map.set(xml_node.id, xml_node);
 			}
-			if (xml_node.className) {
-				this.class_map.set(xml_node.className, xml_node);
+			if (xml_node.parentElement && !xml_node.parentElement.parentElement) {
+				if (xml_node.className) {
+					this.class_map.set(xml_node.className, xml_node);
+				}
 			}
 			this.parse_from_xml_node(xml_node.firstChild);
 		}

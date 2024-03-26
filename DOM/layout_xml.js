@@ -38,6 +38,10 @@ js_util.DOM.LayoutXML = class LayoutXML {
 		}
 	}
 
+	get_style_text(id) {
+		return this.style_map.get(id) || "";
+	}
+
 	dom_from_xml_tag_name(tag) {
 		let xml_root;
 		if (!tag) {

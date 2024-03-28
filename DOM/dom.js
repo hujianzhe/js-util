@@ -49,6 +49,21 @@ js_util.DOM = js_util.DOM || {};
 	}
 })();
 
+js_util.DOM.element_request_pointer_lock = function (dom) {
+	if (dom.requestPointerLock) {
+		dom.requestPointerLock();
+	}
+	else if (dom.mozRequestPointerLock) {
+		dom.mozRequestPointerLock();
+	}
+	else if (dom.webkitRequestPointerLock) {
+		dom.webkitRequestPointerLock();
+	}
+	else if (dom.msRequestPointerLock) {
+		dom.msRequestPointerLock();
+	}
+};
+
 // Full Screen
 (function () {
 	// requestFullscreen
@@ -110,19 +125,34 @@ js_util.DOM = js_util.DOM || {};
 	}
 })();
 
-js_util.DOM.check_full_screen_enabled = function () {
+js_util.DOM.check_fullscreen_enabled = function () {
 	return	document.fullscreenEnabled ||
 			document.mozFullScreenEnabled ||
 			document.webkitFullscreenEnabled ||
 			document.msFullscreenEnabled;
 };
 
-js_util.DOM.current_full_screen_element = function () {
+js_util.DOM.current_fullscreen_element = function () {
 	return	document.fullscreenElement ||
 			document.mozFullscreenElement ||
 			document.mozFullScreenElement ||
 			document.webkitFullscreenElement ||
 			document.msFullscreenElement;
+};
+
+js_util.DOM.element_request_fullscreen = function (dom) {
+	if (dom.requestFullscreen) {
+		dom.requestFullscreen();
+	}
+	else if (dom.mozRequestFullScreen) {
+		dom.mozRequestFullScreen();
+	}
+	else if (dom.webkitRequestFullScreen) {
+		dom.webkitRequestFullScreen();
+	}
+	else if (dom.msRequestFullscreen) {
+		dom.msRequestFullscreen();
+	}
 };
 
 // DOM Test Object Supprted
@@ -203,32 +233,6 @@ js_util.DOM.element_check_in_document = function (dom) {
 		}
 	} while (parentNode !== document);
 	return true;
-};
-
-js_util.DOM.element_compatible = function (dom) {
-	if (!dom.requestFullscreen) {
-		if (dom.mozRequestFullScreen) {
-			dom.requestFullscreen = dom.mozRequestFullScreen;
-		}
-		else if (dom.webkitRequestFullScreen) {
-			dom.requestFullscreen = dom.webkitRequestFullScreen;
-		}
-		else if (dom.msRequestFullscreen) {
-			dom.requestFullscreen = dom.msRequestFullscreen;
-		}
-	}
-	if (!dom.requestPointerLock) {
-		if (dom.mozRequestPointerLock) {
-			dom.requestPointerLock = dom.mozRequestPointerLock;
-		}
-		else if (dom.webkitRequestPointerLock) {
-			dom.requestPointerLock = dom.webkitRequestPointerLock;
-		}
-		else if (dom.msRequestPointerLock) {
-			dom.requestPointerLock = dom.msRequestPointerLock;
-		}
-	}
-	return dom;
 };
 
 js_util.DOM.dom_disable_drag = function (dom) {

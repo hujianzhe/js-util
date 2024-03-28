@@ -204,12 +204,15 @@ js_util.DOM.preventDefault = function (e) {
 	}
 };
 
-js_util.DOM.element_prevent_default_event = function (dom, evtype, useCapture = false) {
-	dom.addEventListener(evtype, function (e) {
-		if (e.cancelable) {
-			e.preventDefault();
-		}
-	}, { passive: false, capture: useCapture });
+js_util.DOM.element_prevent_default_event = function (dom, evtype, options) {
+	if (!options) {
+		options = { passive: false };
+	}
+	else if (options instanceof Boolean) {}
+	else {
+		options.passive = false;
+	}
+	dom.addEventListener(evtype, js_util.DOM.preventDefault, options);
 };
 
 js_util.DOM.fn_to_worker_url = function (fn) {

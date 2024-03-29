@@ -226,7 +226,7 @@ js_util.DOM.element_check_in_document = function (dom) {
 		if (!dom) {
 			return false;
 		}
-	} 
+	}
 	return true;
 };
 

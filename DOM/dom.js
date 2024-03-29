@@ -230,16 +230,6 @@ js_util.DOM.element_check_in_document = function (dom) {
 	return true;
 };
 
-js_util.DOM.dom_disable_drag = function (dom) {
-	dom.onmouseenter = null;
-	dom.onmousedown = null;
-	dom.ontouchstart = null;
-	dom.onmouseup = null;
-	dom.ontouchend = null;
-	dom.onmousemove = null;
-	dom.ontouchmove = null;
-};
-
 js_util.DOM.dom_set_style_user_select = function (dom, value) {
 	const attrs = [
 		"-moz-user-select",

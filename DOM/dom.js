@@ -221,12 +221,12 @@ js_util.DOM.fn_to_worker_url = function (fn) {
 };
 
 js_util.DOM.element_check_in_document = function (dom) {
-	do {
-		const parentNode = dom.parentNode;
-		if (!parentNode) {
+	while (dom !== document) {
+		dom = dom.parentNode;
+		if (!dom) {
 			return false;
 		}
-	} while (parentNode !== document);
+	} 
 	return true;
 };
 

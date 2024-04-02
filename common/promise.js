@@ -12,11 +12,15 @@ if (!js_util.Common.PromiseTimeoutResult) {
 
 js_util.Common.new_promise = function () {
     let resolve_, reject_;
-    let promise = new Promise((resolve, reject) => {
+    let promise_ = new Promise((resolve, reject) => {
         resolve_ = resolve;
         reject_ = reject;
     });
-    return [promise, resolve_, reject_];
+    return {
+        promise: promise_,
+        resolve: resolve_,
+        reject: reject_
+    };
 };
 
 js_util.Common.promise_sleep = async function(ms) {

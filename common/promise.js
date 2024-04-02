@@ -10,6 +10,15 @@ if (!js_util.Common.PromiseTimeoutResult) {
     js_util.Common.PromiseTimeoutResult = new PromiseTimeoutResult();
 }
 
+js_util.Common.new_promise = function () {
+    let resolve_, reject_;
+    let promise = new Promise((resolve, reject) => {
+        resolve_ = resolve;
+        reject_ = reject;
+    });
+    return [promise, resolve_, reject_];
+};
+
 js_util.Common.promise_sleep = async function(ms) {
     const INT32_MAX = 2147483647;
     while (ms > INT32_MAX) {

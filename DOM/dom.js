@@ -140,7 +140,7 @@ js_util.DOM.current_fullscreen_element = function () {
 			document.msFullscreenElement;
 };
 
-js_util.DOM.element_request_fullscreen = function (dom) {
+js_util.DOM.element_request_fullscreen = function (dom = document.documentElement) {
 	if (dom.requestFullscreen) {
 		dom.requestFullscreen();
 	}

@@ -230,6 +230,21 @@ js_util.DOM.element_check_in_document = function (dom) {
 	return true;
 };
 
+js_util.DOM.draw_checkbox_checked_img = function (width, height, lineWidth) {
+	const canvas = document.createElement('canvas');
+	canvas.width = width;
+	canvas.height = height;
+	const ctx = canvas.getContext("2d");
+	ctx.lineWidth = lineWidth;
+	ctx.lineJoin = 'round';
+	ctx.beginPath();
+	ctx.moveTo(0 + lineWidth, Math.floor(height / 4 * 3));
+	ctx.lineTo(Math.floor(width / 4) + lineWidth, height - lineWidth);
+	ctx.lineTo(width - lineWidth, 0 + lineWidth);
+	ctx.stroke();
+	return canvas.toDataURL("image/png");
+};
+
 js_util.DOM.dom_set_style_user_select = function (dom, value) {
 	const attrs = [
 		"-moz-user-select",

@@ -104,7 +104,7 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 
 		ws.onmessage = function (e) {
 			self_this.recv_timestamp_msec = new Date().getTime();
-			start_heartbeat(self_this);
+			self_this.heartbeat_do_times = 0;
 			self_this.onmessage(e);
 		};
 		ws.onclose = (e) => {

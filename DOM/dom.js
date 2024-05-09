@@ -155,6 +155,21 @@ js_util.DOM.element_request_fullscreen = function (dom = document.documentElemen
 	}
 };
 
+js_util.DOM.get_device_pixel_ratio = function () {
+	// To account for zoom, change to use deviceXDPI instead of systemXDPI
+	if (window.screen.systemXDPI !== undefined &&
+		window.screen.logicalXDPI !== undefined &&
+		window.screen.systemXDPI > window.screen.logicalXDPI)
+	{
+		// Only allow for values > 1
+		return window.screen.systemXDPI / window.screen.logicalXDPI;
+	}
+	else if (window.devicePixelRatio !== undefined) {
+		return window.devicePixelRatio;
+	}
+	return 1;
+};
+
 // DOM Test Object Supprted
 
 js_util.DOM.check_websocket_supported = function () {

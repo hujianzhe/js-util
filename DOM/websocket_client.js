@@ -116,9 +116,15 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 		}
 
 		ws.onclose = (e) => {
+			if (self_this.connect_resolve) {
+				self_this.error_code = WebSocketClient.ErrorCode.CONNECT;
+			}
 			self_this.close();
 		};
 		ws.onerror = (e) => {
+			if (self_this.connect_resolve) {
+				self_this.error_code = WebSocketClient.ErrorCode.CONNECT;
+			}
 			self_this.close();
 		};
 		return new Promise((resolve) => {

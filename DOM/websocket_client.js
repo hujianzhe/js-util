@@ -11,6 +11,12 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 		heartbeat_interval_sec: 0,
 	};
 
+	static ErrorCode = {
+		NORMAL : 0,
+		CONNECT : 1,
+		ZOMBIE : 2
+	};
+
 	constructor(opts = WebSocketClient.default_constructor_params) {
 		this.socket = null;
 		this.opts = opts;
@@ -20,6 +26,7 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 		this.heartbeat_timerid = null;
 		this.recv_timestamp_msec = 0;
 		this.connecting_send_cache = null;
+		this.error_code = WebSocketClient.ErrorCode.NORMAL;
 		this.session = null;
 		this.onmessage = function(e) { void e; };
 		this.onheartbeat = function() {};
@@ -45,7 +52,7 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 		}
 		if (this.session) {
 			this.session.socket = null;
-			this.session.onclose();
+			this.session.onclose(this.error_code);
 			this.session = null;
 		}
 	}
@@ -97,6 +104,7 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 			ws_obj.heartbeat_timerid = setTimeout(function proc() {
 				clearTimeout(ws_obj.heartbeat_timerid);
 				if (ws_obj.heartbeat_do_times >= ws_obj.heartbeat_max_times) {
+					ws_obj.error_code = WebSocketClient.ErrorCode.ZOMBIE;
 					ws_obj.heartbeat_timerid = null;
 					ws_obj.close();
 					return;
@@ -121,6 +129,7 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 					self_this.connect_timerid = null;
 					resolve(null);
 					self_this.connect_resolve = null;
+					self_this.error_code = WebSocketClient.ErrorCode.CONNECT;
 					self_this.close();
 				}, self_this.opts.connect_timeout_msec);
 			}

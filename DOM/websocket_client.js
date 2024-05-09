@@ -15,6 +15,7 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 		this.socket = null;
 		this.opts = opts;
 		this.connect_timerid = null;
+		this.connect_resolve = null;
 		this.heartbeat_do_times = 0;
 		this.heartbeat_timerid = null;
 		this.recv_timestamp_msec = 0;
@@ -37,6 +38,10 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 		if (this.connect_timerid) {
 			clearTimeout(this.connect_timerid);
 			this.connect_timerid = null;
+		}
+		if (this.connect_resolve) {
+			this.connect_resolve(null);
+			this.connect_resolve = null;
 		}
 		if (this.session) {
 			this.session.socket = null;
@@ -102,11 +107,6 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 			}, interval_sec * 1000);
 		}
 
-		ws.onmessage = function (e) {
-			self_this.recv_timestamp_msec = new Date().getTime();
-			self_this.heartbeat_do_times = 0;
-			self_this.onmessage(e);
-		};
 		ws.onclose = (e) => {
 			self_this.close();
 		};
@@ -114,15 +114,23 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 			self_this.close();
 		};
 		return new Promise((resolve) => {
+			self_this.connect_resolve = resolve;
 			if (self_this.opts.connect_timeout_msec >= 0) {
 				self_this.connect_timerid = setTimeout(() => {
 					clearTimeout(self_this.connect_timerid);
 					self_this.connect_timerid = null;
 					resolve(null);
+					self_this.connect_resolve = null;
 					self_this.close();
 				}, self_this.opts.connect_timeout_msec);
 			}
 			ws.onopen = function () {
+				self_this.connect_resolve = null;
+				ws.onmessage = function (e) {
+					self_this.recv_timestamp_msec = new Date().getTime();
+					self_this.heartbeat_do_times = 0;
+					self_this.onmessage(e);
+				};
 				if (self_this.connect_timerid) {
 					clearTimeout(self_this.connect_timerid);
 					self_this.connect_timerid = null;

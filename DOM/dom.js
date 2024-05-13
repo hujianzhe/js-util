@@ -282,7 +282,7 @@ js_util.DOM.canvas_invert_RGB = function (canvas) {
 	const ctx = canvas.getContext('2d');
 	ctx.scale(dpr, dpr);
 	let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-	for (let i = 0; i < imageData.data.length; i += 4) {
+	for (let i = 0, len = imageData.data.length; i < len; i += 4) {
 		imageData.data[i] = 255 - imageData.data[i];
 		imageData.data[i+1] = 255 - imageData.data[i+1];
 		imageData.data[i+2] = 255 - imageData.data[i+2];

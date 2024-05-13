@@ -245,6 +245,38 @@ js_util.DOM.element_check_in_document = function (dom) {
 	return true;
 };
 
+js_util.DOM.fill_image_in_canvas = function (canvas, img_param) {
+	function fn_fill(canvas, image) {
+		const dpr = js_util.DOM.get_device_pixel_ratio();
+		canvas.width = image.width * dpr;
+		canvas.height = image.height * dpr;
+		const ctx = canvas.getContext('2d');
+		ctx.scale(dpr, dpr);
+		ctx.drawImage(image, 0, 0, image.width, image.height);
+	}
+	if (typeof img_param === "string") {
+		const image = new Image();
+		image.crossOrigin = 'Anonymous';
+		return new Promise((resolve) => {
+			image.onload = function () {
+				fn_fill(canvas, image);
+				resolve(image);
+			};
+			image.onerror = function () {
+				resolve();
+			};
+			image.src = img_param;
+		});
+	}
+	else {
+		const image = img_param;
+		return new Promise((resolve) => {
+			fn_fill(canvas, image);
+			resolve(image);
+		});
+	}	
+};
+
 js_util.DOM.dom_set_style_user_select = function (dom, value) {
 	const attrs = [
 		"-moz-user-select",

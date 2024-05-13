@@ -277,6 +277,19 @@ js_util.DOM.fill_image_in_canvas = function (canvas, img_param) {
 	}	
 };
 
+js_util.DOM.canvas_invert_RGB = function (canvas) {
+	const dpr = js_util.DOM.get_device_pixel_ratio();
+	const ctx = canvas.getContext('2d');
+	ctx.scale(dpr, dpr);
+	let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+	for (let i = 0; i < imageData.data.length; i += 4) {
+		imageData.data[i] = 255 - imageData.data[i];
+		imageData.data[i+1] = 255 - imageData.data[i+1];
+		imageData.data[i+2] = 255 - imageData.data[i+2];
+	}
+	ctx.putImageData(imageData, 0, 0);
+};
+
 js_util.DOM.dom_set_style_user_select = function (dom, value) {
 	const attrs = [
 		"-moz-user-select",

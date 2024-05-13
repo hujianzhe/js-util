@@ -247,11 +247,9 @@ js_util.DOM.element_check_in_document = function (dom) {
 
 js_util.DOM.fill_image_in_canvas = function (canvas, img_param) {
 	function fn_fill(canvas, image) {
-		const dpr = js_util.DOM.get_device_pixel_ratio();
-		canvas.width = image.width * dpr;
-		canvas.height = image.height * dpr;
+		canvas.width = image.width;
+		canvas.height = image.height;
 		const ctx = canvas.getContext('2d');
-		ctx.scale(dpr, dpr);
 		ctx.drawImage(image, 0, 0, image.width, image.height);
 	}
 	if (typeof img_param === "string") {
@@ -278,9 +276,7 @@ js_util.DOM.fill_image_in_canvas = function (canvas, img_param) {
 };
 
 js_util.DOM.canvas_invert_RGB = function (canvas) {
-	const dpr = js_util.DOM.get_device_pixel_ratio();
 	const ctx = canvas.getContext('2d');
-	ctx.scale(dpr, dpr);
 	let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 	for (let i = 0, len = imageData.data.length; i < len; i += 4) {
 		imageData.data[i] = 255 - imageData.data[i];

@@ -245,6 +245,12 @@ js_util.DOM.element_check_in_document = function (dom) {
 	return true;
 };
 
+js_util.DOM.canvas_fill_all_style = function (canvas, fillStyle) {
+	const ctx = canvas.getContext('2d');
+	ctx.fillStyle = fillStyle;
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+};
+
 js_util.DOM.fill_image_in_canvas = function (canvas, img_param) {
 	function fn_fill(canvas, image) {
 		canvas.width = image.width;

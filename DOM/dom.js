@@ -3,51 +3,33 @@ if (typeof js_util === 'undefined') {
 }
 js_util.DOM = js_util.DOM || {};
 
-// Pointer Lock
-(function () {
-	// pointerLockElement
-	if (!document.pointerLockElement) {
-		if (document.mozPointerLockElement) {
-			document.onmozpointerlockchange = function(e) {
-				if (!document.onpointerlockchange) {
-					return;
-				}
-				document.onpointerlockchange(e);
-			};
-			document.onmozpointerlockerror = function(e) {
-				if (!document.onpointerlockerror) {
-					return;
-				}
-				document.onpointerlockerror(e);
-			};
-			document.pointerLockElement = document.mozPointerLockElement;
-		}
-		else if (document.webkitPointerLockElement) {
-			document.onwebkitpointerlockchange = function(e) {
-				if (!document.onpointerlockchange) {
-					return;
-				}
-				document.onpointerlockchange(e);
-			};
-			document.onwebkitpointerlockerror = function(e) {
-				if (!document.onpointerlockerror) {
-					return;
-				}
-				document.onpointerlockerror(e);
-			};
-			document.pointerLockElement = document.webkitPointerLockElement;
-		}
+js_util.DOM.fullscreen_event_prefix = function () {
+	if (dom.requestPointerLock) {
+		return "";
 	}
-	// exitPointerLock
-	if (!document.exitPointerLock) {
-		if (document.mozExitPointerLock) {
-			document.exitPointerLock = document.mozExitPointerLock;
-		}
-		else if (document.webkitExitPointerLock) {
-			document.exitPointerLock = document.webkitExitPointerLock;
-		}
+	if (dom.mozRequestPointerLock) {
+		return "moz";
 	}
-})();
+	if (dom.webkitRequestPointerLock) {
+		return "webkit";
+	}
+	if (dom.msRequestPointerLock) {
+		return "ms";
+	}
+	return "";
+};
+
+if (!document.exitPointerLock) {
+	if (document.mozExitPointerLock) {
+		document.exitPointerLock = document.mozExitPointerLock;
+	}
+	else if (document.webkitExitPointerLock) {
+		document.exitPointerLock = document.webkitExitPointerLock;
+	}
+	else if (document.msExitPointerLock) {
+		document.exitPointerLock = document.msExitPointerLock;
+	}
+}
 
 js_util.DOM.element_request_pointer_lock = function (dom) {
 	if (dom.requestPointerLock) {
@@ -64,66 +46,40 @@ js_util.DOM.element_request_pointer_lock = function (dom) {
 	}
 };
 
-// Full Screen
-(function () {
-	// requestFullscreen
-	if (!document.documentElement.requestFullscreen) {
-		if (document.documentElement.mozRequestFullScreen) {
-			document.onmozfullscreenchange = function(e) {
-				if (!document.onfullscreenchange) {
-					return;
-				}
-				document.onfullscreenchange(e);
-			};
-			document.onmozfullscreenerror = function(e) {
-				if (!document.onfullscreenerror) {
-					return;
-				}
-				document.onfullscreenerror(e);
-			};
-		}
-		else if (document.documentElement.webkitRequestFullScreen) {
-			document.onwebkitfullscreenchange = function(e) {
-				if (!document.onfullscreenchange) {
-					return;
-				}
-				document.onfullscreenchange(e);
-			};
-			document.onwebkitfullscreenerror = function(e) {
-				if (!document.onfullscreenerror) {
-					return;
-				}
-				document.onfullscreenerror(e);
-			};
-		}
-		else if (document.documentElement.msRequestFullscreen) {
-			document.onMSFullscreenChange = function(e) {
-				if (!document.onfullscreenchange) {
-					return;
-				}
-				document.onfullscreenchange(e);
-			};
-			document.onMSFullscreenError = function(e) {
-				if (!document.onfullscreenerror) {
-					return;
-				}
-				document.onfullscreenerror(e);
-			};
-		}
+js_util.DOM.current_fullscreen_element = function () {
+	return document.pointerLockElement ||
+		document.mozPointerLockElement ||
+		document.webkitPointerLockElement ||
+		document.msPointerLockElement;
+};
+
+js_util.DOM.fullscreen_event_prefix = function () {
+	if (document.documentElement.requestFullscreen) {
+		return "";
 	}
-	// exitFullscreen
-	if (!document.exitFullscreen) {
-		if (document.mozCancelFullScreen) {
-			document.exitFullscreen = document.mozCancelFullScreen;
-		}
-		else if (document.webkitCancelFullScreen) {
-			document.exitFullscreen = document.webkitCancelFullScreen;
-		}
-		else if (document.msExitFullscreen) {
-			document.exitFullscreen = document.msExitFullscreen;
-		}
+	if (document.documentElement.mozRequestFullScreen) {
+		return "moz";
 	}
-})();
+	if (document.documentElement.webkitRequestFullScreen) {
+		return "webkit";
+	}
+	if (document.documentElement.msRequestFullscreen) {
+		return "ms";
+	}
+	return "";
+};
+
+if (!document.exitFullscreen) {
+	if (document.mozCancelFullScreen) {
+		document.exitFullscreen = document.mozCancelFullScreen;
+	}
+	else if (document.webkitCancelFullScreen) {
+		document.exitFullscreen = document.webkitCancelFullScreen;
+	}
+	else if (document.msExitFullscreen) {
+		document.exitFullscreen = document.msExitFullscreen;
+	}
+}
 
 js_util.DOM.check_fullscreen_enabled = function () {
 	return	document.fullscreenEnabled ||

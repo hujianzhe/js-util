@@ -5,6 +5,8 @@
 	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
 	<title>js-util Test</title>
 	<link rel="stylesheet" type="text/css" href="base.css">
+	<script src="https://cdn.bootcss.com/vConsole/3.2.2/vconsole.min.js"></script>
+
 	<script type="text/javascript" src="common/date.js"></script>
 	<script type="text/javascript" src="common/env.js"></script>
 	<script type="text/javascript" src="common/hex_grid_map.js"></script>
@@ -25,9 +27,48 @@
 	<script type="text/javascript" src="DOM/websocket_client.js"></script>
 </head>
 <body>
+	<div id="div1" style="border: 1px solid; height: 33%; overflow: auto;"></div>
+	<div id="div2" style="border: 1px solid; height: 33%; overflow: auto;"></div>
+	<div id="div3" style="border: 1px solid; height: 30%; overflow: auto;"></div>
 </body>
 <script type="text/javascript">
 async function main() {
+	// 移动端加载调试工具
+	if (js_util.Common.host_browser_env() === js_util.Common.HOST_BROWSER_ENV.MOBILE) {
+		if (VConsole) {
+			new VConsole();
+		}
+	}
+	let divArr = [
+		document.getElementById("div1"),
+		document.getElementById("div2")
+	];
+	let console_div = document.getElementById("div3");
+	for (let i = 0; i < divArr.length; ++i) {
+		const div = divArr[i];
+		div.addEventListener("touchstart", function (e) {
+			div.innerText += `touchstart,,, touches_length: ${e.touches.length}, target_length: ${e.targetTouches.length}, changed_length: ${e.changedTouches.length}`;
+			let s = '';
+			for (const touch of e.touches) {
+				s += `start touch id: ${touch.identifier}, movement: `;
+				let state = this.key_states_map.get(touch.identifier);
+				s += `(${state.data.movementX}, ${state.data.movementY})\n`;
+			}
+			s += '--------\n'
+			console_div.innerText += s;
+		});
+		div.addEventListener("touchmove", function (e) {
+			div.innerText += `touchmove,,, touches_length: ${e.touches.length}, target_length: ${e.targetTouches.length}, changed_length: ${e.changedTouches.length}`;
+			let s = '';
+			for (const touch of e.touches) {
+				s += `move touch id: ${touch.identifier}, movement: `;
+				let state = this.key_states_map.get(touch.identifier);
+				s += `(${state.data.movementX}, ${state.data.movementY})\n`;
+			}
+			s += '--------\n'
+			console_div.innerText += s;
+		});
+	}
 	// Test execute env
 	//console.log(`host env: ${js_util.Common.host_env()}, ${js_util.Common.host_env_string()}, \
 //${js_util.Common.host_browser_env()}, ${js_util.Common.host_browser_env_string()}`);

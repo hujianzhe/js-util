@@ -51,7 +51,7 @@ async function main() {
 			let s = '';
 			for (const touch of e.touches) {
 				s += `start touch id: ${touch.identifier}, movement: `;
-				let state = this.key_states_map.get(touch.identifier);
+				let state = js_util.DOM.TouchGlobalListener.key_state(touch.identifier);
 				s += `(${state.data.movementX}, ${state.data.movementY})\n`;
 			}
 			s += '--------\n'
@@ -62,7 +62,7 @@ async function main() {
 			let s = '';
 			for (const touch of e.touches) {
 				s += `move touch id: ${touch.identifier}, movement: `;
-				let state = this.key_states_map.get(touch.identifier);
+				let state = js_util.DOM.TouchGlobalListener.key_state(touch.identifier);
 				s += `(${state.data.movementX}, ${state.data.movementY})\n`;
 			}
 			s += '--------\n'

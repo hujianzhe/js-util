@@ -251,6 +251,11 @@ js_util.DOM.canvas_fill_all_style = function (canvas, fillStyle) {
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 };
 
+js_util.DOM.canvas_fill_canvas = function (dstCanvas, srcCanvas) {
+	const dstCtx = dstCanvas.getContext('2d');
+	dstCtx.drawImage(srcCanvas, 0, 0, srcCanvas.width, srcCanvas.height, 0, 0, dstCanvas.width, dstCanvas.height);
+};
+
 js_util.DOM.fill_image_in_canvas = function (canvas, img_param) {
 	function fn_fill(canvas, image) {
 		canvas.width = image.width;

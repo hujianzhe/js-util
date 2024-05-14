@@ -272,7 +272,7 @@ js_util.DOM.fill_image_in_canvas = function (canvas, img_param) {
 			fn_fill(canvas, image);
 			resolve(image);
 		});
-	}	
+	}
 };
 
 js_util.DOM.canvas_invert_RGB = function (canvas) {

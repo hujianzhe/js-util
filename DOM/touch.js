@@ -38,7 +38,7 @@ if (!js_util.DOM.TouchListener) {
         }
 
         touchmove(e) {
-            for (const touch of e.changedTouches) {
+            for (const touch of e.touches) {
                 let state = this.key_states_map.get(touch.identifier);
                 if (!state) {
                     state = new TouchState(touch.identifier);
@@ -59,7 +59,7 @@ if (!js_util.DOM.TouchListener) {
         }
 
         touchstart(e) {
-            for (const touch of e.changedTouches) {
+            for (const touch of e.touches) {
                 let state = this.key_states_map.get(touch.identifier);
                 if (!state) {
                     state = new TouchState(touch.identifier);

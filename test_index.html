@@ -47,7 +47,8 @@ async function main() {
 	for (let i = 0; i < divArr.length; ++i) {
 		const div = divArr[i];
 		div.addEventListener("touchstart", function (e) {
-			div.innerText += `touchstart,,, touches_length: ${e.touches.length}, target_length: ${e.targetTouches.length}, changed_length: ${e.changedTouches.length}`;
+			div.innerText += `touchstart,,, touches_length: ${e.touches.length}, target_length: ${e.targetTouches.length}, changed_length: ${e.changedTouches.length}\n`;
+			div.scrollTop = div.scrollHeight;
 			let s = '';
 			for (const touch of e.touches) {
 				s += `start touch id: ${touch.identifier}, movement: `;
@@ -56,10 +57,20 @@ async function main() {
 			}
 			s += '--------\n'
 			console_div.innerText += s;
+			console_div.scrollTop = console_div.scrollHeight;
 		});
 		div.addEventListener("touchmove", function (e) {
-			div.innerText += `touchmove,,, touches_length: ${e.touches.length}, target_length: ${e.targetTouches.length}, changed_length: ${e.changedTouches.length}`;
 			let s = '';
+			for (const touch of e.targetTouches) {
+				s += `move touch id: ${touch.identifier}, movement: `;
+				let state = js_util.DOM.TouchGlobalListener.key_state(touch.identifier);
+				s += `(${state.data.movementX}, ${state.data.movementY})\n`;
+			}
+			s += '--------\n'
+			div.innerText += s;
+			div.scrollTop = div.scrollHeight;
+
+			s = '';
 			for (const touch of e.touches) {
 				s += `move touch id: ${touch.identifier}, movement: `;
 				let state = js_util.DOM.TouchGlobalListener.key_state(touch.identifier);
@@ -67,6 +78,7 @@ async function main() {
 			}
 			s += '--------\n'
 			console_div.innerText += s;
+			console_div.scrollTop = console_div.scrollHeight;
 		});
 	}
 	// Test execute env

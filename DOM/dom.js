@@ -3,20 +3,19 @@ if (typeof js_util === 'undefined') {
 }
 js_util.DOM = js_util.DOM || {};
 
-js_util.DOM.fullscreen_event_prefix = function () {
+js_util.DOM.pointerlock_event_string = function (str_event) {
 	if (dom.requestPointerLock) {
-		return "";
+		return str_event;
 	}
 	if (dom.mozRequestPointerLock) {
-		return "moz";
+		return "moz" + str_event;
 	}
 	if (dom.webkitRequestPointerLock) {
-		return "webkit";
+		return "webkit" + str_event;
 	}
 	if (dom.msRequestPointerLock) {
-		return "ms";
+		return "ms" + str_event;
 	}
-	return "";
 };
 
 if (!document.exitPointerLock) {
@@ -53,20 +52,19 @@ js_util.DOM.current_fullscreen_element = function () {
 		document.msPointerLockElement;
 };
 
-js_util.DOM.fullscreen_event_prefix = function () {
+js_util.DOM.fullscreen_event_string = function (str_event) {
 	if (document.documentElement.requestFullscreen) {
-		return "";
+		return str_event;
 	}
 	if (document.documentElement.mozRequestFullScreen) {
-		return "moz";
+		return "moz" + str_event;
 	}
 	if (document.documentElement.webkitRequestFullScreen) {
-		return "webkit";
+		return "webkit" + str_event;
 	}
 	if (document.documentElement.msRequestFullscreen) {
-		return "ms";
+		return "ms" + str_event;
 	}
-	return "";
 };
 
 if (!document.exitFullscreen) {

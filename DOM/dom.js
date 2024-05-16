@@ -218,7 +218,7 @@ js_util.DOM.fill_image_in_canvas = function (canvas, img_param) {
 		ctx.drawImage(image, 0, 0, image.width, image.height);
 	}
 	if (typeof img_param === "string") {
-		const image = new Image();
+		let image = new Image();
 		image.crossOrigin = 'Anonymous';
 		return new Promise((resolve) => {
 			image.onload = function () {

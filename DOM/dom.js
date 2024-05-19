@@ -3,6 +3,8 @@ if (typeof js_util === 'undefined') {
 }
 js_util.DOM = js_util.DOM || {};
 
+// DOM Pointer Lock
+
 js_util.DOM.pointerlock_event_string = function (str_event) {
 	if (dom.requestPointerLock) {
 		return str_event;
@@ -45,6 +47,8 @@ js_util.DOM.element_request_pointer_lock = function (dom) {
 	}
 };
 
+// DOM Fullscreen
+
 js_util.DOM.current_fullscreen_element = function () {
 	return document.pointerLockElement ||
 		document.mozPointerLockElement ||
@@ -73,6 +77,9 @@ if (!document.exitFullscreen) {
 	}
 	else if (document.webkitCancelFullScreen) {
 		document.exitFullscreen = document.webkitCancelFullScreen;
+	}
+	else if (document.webkitExitFullscreen) {
+		document.exitFullscreen = document.webkitExitFullscreen;
 	}
 	else if (document.msExitFullscreen) {
 		document.exitFullscreen = document.msExitFullscreen;
@@ -109,20 +116,39 @@ js_util.DOM.element_request_fullscreen = function (dom = document.documentElemen
 	}
 };
 
-js_util.DOM.get_device_pixel_ratio = function () {
-	// To account for zoom, change to use deviceXDPI instead of systemXDPI
-	if (window.screen.systemXDPI !== undefined &&
-		window.screen.logicalXDPI !== undefined &&
-		window.screen.systemXDPI > window.screen.logicalXDPI)
-	{
-		// Only allow for values > 1
-		return window.screen.systemXDPI / window.screen.logicalXDPI;
+// DOM requestAnimationFrame
+
+if (!window.requestAnimationFrame) {
+	const prefix_arr = ["moz", "webkit", "ms"];
+	for (const prefix of prefix_arr) {
+		if (window[prefix + "RequestAnimationFrame"]) {
+			window.requestAnimationFrame = window[prefix + "RequestAnimationFrame"];
+			break;
+		}
 	}
-	else if (window.devicePixelRatio !== undefined) {
-		return window.devicePixelRatio;
+	if (!window.requestAnimationFrame) {
+		window.requestAnimationFrame = function (fn) {
+			return window.setTimeout(fn, 16);
+		};
 	}
-	return 1;
-};
+}
+
+if (!window.cancelAnimationFrame) {
+	const prefix_arr = ["moz", "webkit", "ms"];
+	for (const prefix of prefix_arr) {
+		if (window[prefix + 'CancelAnimationFrame']) {
+			window.cancelAnimationFrame = window[prefix + 'CancelAnimationFrame'];
+			break;
+		}
+		else if (window[prefix + 'CancelRequestAnimationFrame']) {
+			window.cancelAnimationFrame = window[prefix + 'CancelRequestAnimationFrame'];
+			break;
+		}
+	}
+	if (!window.cancelAnimationFrame) {
+		window.cancelAnimationFrame = window.clearTimeout;
+	}
+}
 
 // DOM Test Object Supprted
 
@@ -158,6 +184,21 @@ js_util.DOM.check_webgl_supported = function () {
 };
 
 // DOM Object Operator
+
+js_util.DOM.get_device_pixel_ratio = function () {
+	// To account for zoom, change to use deviceXDPI instead of systemXDPI
+	if (window.screen.systemXDPI !== undefined &&
+		window.screen.logicalXDPI !== undefined &&
+		window.screen.systemXDPI > window.screen.logicalXDPI)
+	{
+		// Only allow for values > 1
+		return window.screen.systemXDPI / window.screen.logicalXDPI;
+	}
+	else if (window.devicePixelRatio !== undefined) {
+		return window.devicePixelRatio;
+	}
+	return 1;
+};
 
 js_util.DOM.stopPropagation = function (e) {
 	e.stopPropagation();

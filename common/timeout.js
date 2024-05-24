@@ -53,6 +53,7 @@ js_util.Common.TimeoutEventSet = class TimeoutSet {
         }, msec);
         if (special_id !== undefined) {
             ev.special_id = special_id;
+            self.timeout_map.set(special_id, ev);
         }
         else {
             self.timeout_set.add(ev);

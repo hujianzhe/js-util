@@ -48,7 +48,7 @@ js_util.Common.TimeoutEventSet = class TimeoutSet {
             }
         }
         let ev = js_util.Common.set_timeout_ex(function () {
-            self.clear_timeout(ev);
+            self.remove_timeout(ev);
             fn();
         }, msec);
         if (special_id !== undefined) {
@@ -63,10 +63,10 @@ js_util.Common.TimeoutEventSet = class TimeoutSet {
     remove_timeout(ev) {
         js_util.Common.clear_timeout_ex(ev);
         if (ev.special_id !== undefined) {
-            self.timeout_map.delete(ev.special_id);
+            this.timeout_map.delete(ev.special_id);
         }
         else {
-            self.timeout_set.delete(ev);
+            this.timeout_set.delete(ev);
         }
     }
 
@@ -75,7 +75,7 @@ js_util.Common.TimeoutEventSet = class TimeoutSet {
         if (!ev) {
             return;
         }
-        this.clear_timeout(ev);
+        this.remove_timeout(ev);
     }
 
     remove_all() {

@@ -133,10 +133,14 @@ class NetChannelBase {
 			let decodeObj;
 			try {
 				decodeObj = this._protoclCoder.decode(this._rbf, rinfo);
-				if (!decodeObj || 0 == decodeObj.totalLen) {
+				if (!decodeObj) {
 					break;
 				}
-				if (decodeObj.totalLen < 0) {
+				if (decodeObj.totalLength === undefined || decodeObj.totalLength === null) {
+					this._onClose(new Error("NetChannelBase::onReadBuffer miss totalLength field"));
+					return;
+				}
+				if (decodeObj.totalLength < 0) {
 					this._onClose(new Error("NetChannelBase::onReadBuffer decode exception"));
 					return;
 				}
@@ -144,7 +148,7 @@ class NetChannelBase {
 				this._onClose(new Error("NetChannelBase::onReadBuffer decode exception"));
 				return;
 			}
-			this._rbf = this._rbf.subarray(decodeObj.totalLen);
+			this._rbf = this._rbf.subarray(decodeObj.totalLength);
 			try {
 				this._pipeline.handleDecodeObj(this, decodeObj);
 			}

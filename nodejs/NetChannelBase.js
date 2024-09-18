@@ -103,7 +103,6 @@ class NetChannelBase {
 	}
 
 	_onClose(err) {
-		console.log("onCLose");
 		if (this._io) {
 			this._pipeline.fnIoDestroy(this._io);
 			this._io = null;
@@ -131,9 +130,19 @@ class NetChannelBase {
 		this._lastRecvMsec = Date.now();
 		this._rbf = Buffer.concat([this._rbf, data]);
 		while (true) {
-			let decodeObj = this._protoclCoder.decode(this._rbf, rinfo);
-			if (!decodeObj) {
-				break;
+			let decodeObj;
+			try {
+				decodeObj = this._protoclCoder.decode(this._rbf, rinfo);
+				if (!decodeObj || 0 == decodeObj.totalLen) {
+					break;
+				}
+				if (decodeObj.totalLen < 0) {
+					this._onClose(new Error("NetChannelBase::onReadBuffer decode exception"));
+					return;
+				}
+			} catch (e) {
+				this._onClose(new Error("NetChannelBase::onReadBuffer decode exception"));
+				return;
 			}
 			this._rbf = this._rbf.subarray(decodeObj.totalLen);
 			try {

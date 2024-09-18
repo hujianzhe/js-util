@@ -319,7 +319,7 @@ class NetChannelBase {
 	}
 }
 
-class NetBridgeClientChannel extends NetChannelBase {
+class NetBridgeClientHub extends NetChannelBase {
 	constructor(pipeline, protocolCoder, io) {
 		super(pipeline, protocolCoder, io, NetChannelBase.CLIENT_SIDE, 0);
 		this.publishChannel = new Map();
@@ -391,6 +391,6 @@ module.exports = {
 	NetProtocolCoderBase,
 	NetChannelPipelineBase,
 	NetChannelBase,
-	NetBridgeClientChannel,
+	NetBridgeClientHub,
 	NetSessionBase
 };

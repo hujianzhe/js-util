@@ -218,11 +218,13 @@ class NetChannelBase {
 		if (this.side != NetChannelBase.CLIENT_SIDE) {
 			return null;
 		}
+		if (this._socktype != NetChannelBase.SOCK_STREAM) {
+			return null;
+		}
 		if (NetChannelBase.CONNECT_STATUS_NEW != this._connectStatus) {
 			return this;
 		}
 		let self = this;
-		this._socktype = NetChannelBase.SOCK_STREAM;
 		this._connectStatus = NetChannelBase.CONNECT_STATUS_DOING;
 		this._pipeline.fnIoFin = (io) => {
 			if (self._waitSendBufferWhenConnecting && self._waitSendBufferWhenConnecting.length > 0) {

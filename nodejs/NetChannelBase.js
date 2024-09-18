@@ -1,4 +1,4 @@
-const { createConnection } = require('net');
+const net = require('net');
 
 class NetProtocolCoderBase {
 	constructor() {
@@ -141,7 +141,7 @@ class NetChannelBase {
 	}
 
 	fin() {
-		if (this._io) {
+		if (this._io && this._pipeline.fnIoFin) {
 			this._pipeline.fnIoFin(this.io);
 		}
 	}
@@ -217,7 +217,7 @@ class NetChannelBase {
 					resolve(null);
 				}, timeout_msec);
 			}
-			self._io = createConnection({ host: host, port: port }, () => {
+			self._io = net.createConnection({ host: host, port: port }, () => {
 				self._connectResolve = null;
 				self._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
 				if (conn_timeout_id) {

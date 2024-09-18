@@ -23,9 +23,9 @@ class NetChannelPipelineBase {
 		throw new Error("NetChannelPipelineBase::_genReqId must implement");
 	}
 
-	async handleRecvObj(channel, recvObj) {
+	async handleDecodeObj(channel, recvObj) {
 		void channel; void recvObj;
-		throw new Error("NetChannelPipelineBase::handleRecvObj must implement");
+		throw new Error("NetChannelPipelineBase::handleDecodeObj must implement");
 	}
 
 	newReqObj(timeout_msec) {
@@ -142,7 +142,7 @@ class NetChannelBase {
 			}
 			this._rbf = this._rbf.subarray(recvObj.totalLen);
 			try {
-				this._pipeline.handleRecvObj(this, recvObj);
+				this._pipeline.handleDecodeObj(this, recvObj);
 			}
 			catch (e) { void e; }
 		}
@@ -324,6 +324,41 @@ class NetBridgeClientHub extends NetChannelBase {
 		super(pipeline, protocolCoder, io, NetChannelBase.CLIENT_SIDE, 0);
 		this.publishChannel = new Map();
 		this.subscribeChannel = new Map();
+	}
+
+	getChannel(side, key) {
+		if (NetChannelBase.PUBLISH_SIDE == side) {
+			return this.publishChannel.get(key);
+		}
+		else if (NetChannelBase.SUBSCRIBE_SIDE == side) {
+			return this.subscribeChannel.get(key);
+		}
+		return null;
+	}
+
+	addChannel(key, channel) {
+		if (NetChannelBase.PUBLISH_SIDE == channel._side) {
+			channel._connectStatus = this._connectStatus;
+			this.publishChannel.set(key, channel);
+		}
+		else if (NetChannelBase.SUBSCRIBE_SIDE == channel._side) {
+			this.subscribeChannel.set(key, channel);
+		}
+		else {
+			return;
+		}
+		channel._io = this._io;
+		channel._pipeline.fnIoDestroy = (io) => { void io; };
+        channel._pipeline.fnIoFin = (io) => { void io; }
+	}
+
+	_onConnectSuccess() {
+		this._connectResolve = null;
+		this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
+		for (let pub_ch of this.publishChannel.values()) {
+			pub_ch._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
+			pub_ch._writeConnectingCacheData();
+		}
 	}
 
 	setClientSideHeartbeat(fnHeartbeat, interval, maxTimes) {

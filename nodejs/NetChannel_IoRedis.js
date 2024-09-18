@@ -35,20 +35,12 @@ class NetIoRedisPublishClientHub extends NetIoRedisClientHub {
         super(pipeline);
     }
 
-    getChannel(publishKey) {
-        return this.publishChannel.get(publishKey);
-    }
-
-    setPublish(dstPublishKey, srcPublishKey, channel) {
+    addPublish(dstPublishKey, srcPublishKey, channel) {
         channel.publishKey = srcPublishKey;
-        channel._io = this._io;
-        channel._connectStatus = this._connectStatus;
-        channel._pipeline.fnIoDestroy = (io) => { void io; };
-        channel._pipeline.fnIoFin = (io) => { void io; }
         channel._pipeline.fnIoWrite = (io, data) => {
             io.publishBuffer(dstPublishKey, data);
         }
-        this.publishChannel.set(dstPublishKey, channel);
+        this.addChannel(dstPublishKey, channel);
     }
 
     connect(args) {
@@ -62,12 +54,7 @@ class NetIoRedisPublishClientHub extends NetIoRedisClientHub {
             self._io = new Redis(args);
             self.useEvent();
             self._io.on('ready', () => {
-                self._connectResolve = null;
-                this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
-                for (let ch of this.publishChannel.values()) {
-                    ch._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
-                    ch._writeConnectingCacheData();
-                }
+                self._onConnectSuccess();
                 resolve(self);
             });
         });
@@ -103,29 +90,24 @@ class NetIoRedisSubscribeClientHub extends NetIoRedisClientHub {
             self._io = new Redis(args);
             self.useEvent();
             self._io.on('ready', () => {
-                self._connectResolve = null;
-                this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
+                self._onConnectSuccess();
                 resolve(self);
             });
         });
     }
 
-    getChannel(subscribeKey) {
-        return this.subscribeChannel.get(subscribeKey);
-    }
-
-    setSubscribe(subscribeKey, channel) {
-        channel._io = this._io;
-        channel._pipeline.fnIoDestroy = (io) => { void io; };
-        channel._pipeline.fnIoFin = (io) => { void io; }
+    async addSubscribe(subscribeKey, channel) {
         channel._pipeline.fnIoWrite = (io, data) => { void io; void data; }
-        this.subscribeChannel.set(subscribeKey, channel);
         let self = this;
-        return new Promise((resolve) => {
+        const err = await new Promise((resolve) => {
             self._io.subscribe(subscribeKey, (err) => {
                 resolve(err);
             });
         });
+        if (!err) {
+            this.addChannel(subscribeKey, channel);
+        }
+        return err;
     }
 }
 

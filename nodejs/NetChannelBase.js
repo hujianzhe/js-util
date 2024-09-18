@@ -129,7 +129,7 @@ class NetChannelBase {
 		this._heartbeatTimes = 0;
 		this._lastRecvMsec = Date.now();
 		this._rbf = Buffer.concat([this._rbf, data]);
-		while (true) {
+		while (this._rbf.length > 0) {
 			let decodeObj;
 			try {
 				decodeObj = this._protoclCoder.decode(this._rbf, rinfo);

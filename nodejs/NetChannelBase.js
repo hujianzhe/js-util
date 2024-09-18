@@ -4,8 +4,8 @@ class NetProtocolCoderBase {
 	constructor() {
 	}
 
-	decode(buff) {
-		void buff;
+	decode(buff, rinfo) {
+		void buff, rinfo;
 		throw new Error("NetProtocolCoderBase::decode must implement");
 	}
 }
@@ -15,9 +15,9 @@ class NetChannelPipelineBase {
 		this._reqMap = new Map();
 
 		this.fnCmdDispatch = null;
-		this.fnIoDestroy = null;
 		this.fnIoWrite = null;
 		this.fnIoFin = null;
+		this.fnIoDestroy = null;
 	}
 
 	_genReqId() {
@@ -94,6 +94,7 @@ class NetChannelBase {
 		this._side = side;
 		this._connectStatus = NetChannelBase.CONNECT_STATUS_NEW;
 		this._connectResolve = null;
+		this._ready_fin = false;
 		this._waitSendBufferWhenConnecting = Buffer.alloc(0);
 
 		this.publishKey = null;
@@ -127,7 +128,7 @@ class NetChannelBase {
 		}
 	}
 
-	onReadBuffer(data) {
+	onReadBuffer(data, rinfo) {
 		this._heartbeatTimes = 0;
 		this._lastRecvMsec = Date.now();
 		this._rbf = Buffer.concat([this._rbf, data]);
@@ -138,7 +139,7 @@ class NetChannelBase {
 					break;
 				}
 			}
-			let recvObj = this._protoclCoder.decode(this._rbf);
+			let recvObj = this._protoclCoder.decode(this._rbf, rinfo);
 			if (!recvObj) {
 				break;
 			}
@@ -154,6 +155,10 @@ class NetChannelBase {
 		if (this._io) {
 			this._pipeline.fnIoFin(this._io);
 		}
+	}
+
+	close() {
+		this._onClose();
 	}
 
 	_writeConnectingCacheData() {
@@ -184,24 +189,31 @@ class NetChannelBase {
 
 	useStdNetEvent() {
 		let self = this;
-		this._io.setNoDelay();
-		this._io.on('data', (data) => {
-			self.onReadBuffer(data);
-		});
+		if (NetChannelBase.SOCK_STREAM == this._socktype) {
+			this._io.setNoDelay();
+			this._io.on('data', (data) => {
+				self.onReadBuffer(data, null);
+			});
+		}
+		else if (NetChannelBase.SOCK_DGRAM == this._socktype) {
+			this._io.on('message', (data, rinfo) => {
+				self.onReadBuffer(data, rinfo);
+			});
+		}
 		this._io.on('error', (err) => {
 			self._onClose(err);
 		});
 		this._io.on('close', () => {
 			self._onClose();
 		});
-		this._pipeline.fnIoDestroy = (io) => {
-			io.destroy();
-		};
 		this._pipeline.fnIoWrite = (io, data) => {
 			io.write(data);
 		};
 		this._pipeline.fnIoFin = (io) => {
 			io.end();
+		};
+		this._pipeline.fnIoDestroy = (io) => {
+			io.destroy();
 		};
 	}
 
@@ -212,9 +224,19 @@ class NetChannelBase {
 		if (NetChannelBase.CONNECT_STATUS_NEW != this._connectStatus) {
 			return this;
 		}
+		let self = this;
 		this._socktype = NetChannelBase.SOCK_STREAM;
 		this._connectStatus = NetChannelBase.CONNECT_STATUS_DOING;
-		let self = this;
+		this._pipeline.fnIoFin = (io) => {
+			if (self._waitSendBufferWhenConnecting && self._waitSendBufferWhenConnecting.length > 0) {
+				self._ready_fin = true;
+				return;
+			}
+			io.end();
+		};
+		this._pipeline.fnIoDestroy = (io) => {
+			io.destroy();
+		};
 		return new Promise((resolve) => {
 			self._connectResolve = resolve;
 			let conn_timeout_id = null;
@@ -236,6 +258,9 @@ class NetChannelBase {
 				}
 				self.useStdNetEvent();
 				self._writeConnectingCacheData();
+				if (self._ready_fin) {
+					self._io.end();
+				}
 				resolve(self);
 			});
 		});

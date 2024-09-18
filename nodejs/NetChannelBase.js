@@ -23,8 +23,8 @@ class NetChannelPipelineBase {
 		throw new Error("NetChannelPipelineBase::_genReqId must implement");
 	}
 
-	async handleDecodeObj(channel, recvObj) {
-		void channel; void recvObj;
+	async handleDecodeObj(channel, decodeObj) {
+		void channel; void decodeObj;
 		throw new Error("NetChannelPipelineBase::handleDecodeObj must implement");
 	}
 
@@ -52,18 +52,18 @@ class NetChannelPipelineBase {
 		return reqObj;
 	}
 
-	resumeReqObj(reqId, recvObj, tmMsec) {
+	resumeReqObj(reqId, decodeObj, tmMsec) {
 		let reqObj = this._reqMap.get(reqId);
 		if (reqObj) {
 			this._reqMap.delete(reqId);
-			recvObj.costMsec = tmMsec - reqObj.tmMsec;
+			decodeObj.costMsec = tmMsec - reqObj.tmMsec;
 
 			if (reqObj.timeoutId) {
 				clearTimeout(reqObj.timeoutId);
 				reqObj.timeoutId = null;
 			}
 			reqObj.promise = null;
-			reqObj.resolve(recvObj);
+			reqObj.resolve(decodeObj);
 		}
 	}
 }
@@ -131,13 +131,13 @@ class NetChannelBase {
 		this._lastRecvMsec = Date.now();
 		this._rbf = Buffer.concat([this._rbf, data]);
 		while (true) {
-			let recvObj = this._protoclCoder.decode(this._rbf, rinfo);
-			if (!recvObj) {
+			let decodeObj = this._protoclCoder.decode(this._rbf, rinfo);
+			if (!decodeObj) {
 				break;
 			}
-			this._rbf = this._rbf.subarray(recvObj.totalLen);
+			this._rbf = this._rbf.subarray(decodeObj.totalLen);
 			try {
-				this._pipeline.handleDecodeObj(this, recvObj);
+				this._pipeline.handleDecodeObj(this, decodeObj);
 			}
 			catch (e) { void e; }
 		}

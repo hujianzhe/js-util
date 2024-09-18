@@ -92,7 +92,7 @@ class NetChannelBase {
 		this._connectStatus = NetChannelBase.CONNECT_STATUS_NEW;
 		this._connectResolve = null;
 		this._ready_fin = false;
-		this._waitSendBufferWhenConnecting = Buffer.alloc(0);
+		this._waitSendBufferWhenConnecting = null;
 		this.sessionObj = null;
 	}
 
@@ -113,6 +113,7 @@ class NetChannelBase {
 			this._connectResolve(null);
 			this._connectResolve = null;
 		}
+		this._ready_fin = false;
 		this._waitSendBufferWhenConnecting = null;
 
 		let sessionObj = this.sessionObj;
@@ -265,8 +266,11 @@ class NetChannelBase {
 				self._writeConnectingCacheData();
 				if (self._ready_fin) {
 					self._io.end();
+					resolve(null);
 				}
-				resolve(self);
+				else {
+					resolve(self);
+				}
 			});
 		});
 	}

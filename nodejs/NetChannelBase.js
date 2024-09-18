@@ -14,7 +14,6 @@ class NetChannelPipelineBase {
 	constructor() {
 		this._reqMap = new Map();
 
-		this.fnCmdDispatch = null;
 		this.fnIoWrite = null;
 		this.fnIoFin = null;
 		this.fnIoDestroy = null;
@@ -96,8 +95,6 @@ class NetChannelBase {
 		this._connectResolve = null;
 		this._ready_fin = false;
 		this._waitSendBufferWhenConnecting = Buffer.alloc(0);
-
-		this.publishKey = null;
 		this.sessionObj = null;
 	}
 
@@ -123,7 +120,7 @@ class NetChannelBase {
 		let sessionObj = this.sessionObj;
 		if (sessionObj) {
 			this.sessionObj = null;
-			sessionObj.tmChannel = null;
+			sessionObj.channel = null;
 			sessionObj.onDisconnect(err, this);
 		}
 	}
@@ -368,21 +365,21 @@ class NetBridgeClientChannel extends NetChannelBase {
 class NetSessionBase {
 	constructor(id) {
 		this.id = id;
-		this.tmChannel = null;
+		this.channel = null;
 	}
 
-	replaceChannel(new_tmChannel) {
-		let old_tmChannel = this.tmChannel;
-		if (old_tmChannel === new_tmChannel) {
+	replaceChannel(new_channel) {
+		let old_channel = this.channel;
+		if (old_channel === new_channel) {
 			return;
 		}
-		if (old_tmChannel) {
-			old_tmChannel.sessionObj = null;
+		if (old_channel) {
+			old_channel.sessionObj = null;
 		}
-		if (new_tmChannel) {
-			new_tmChannel.sessionObj = this;
+		if (new_channel) {
+			new_channel.sessionObj = this;
 		}
-		this.tmChannel = new_tmChannel;
+		this.channel = new_channel;
 	}
 
 	async onDisconnect(err, old_ch) { void err; void old_ch; }

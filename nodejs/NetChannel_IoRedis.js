@@ -7,9 +7,9 @@ class NetBridgeClient_IoRedisBase extends NetBridgeClientChannel {
     }
 
     setHeartbeat(interval, maxTimes) {
-        super.setClientSideHeartbeat((tmChannel)=>{
-            tmChannel._heartbeatTimes = 0;
-            tmChannel._io.ping();
+        super.setClientSideHeartbeat((channel)=>{
+            channel._heartbeatTimes = 0;
+            channel._io.ping();
         }, interval, maxTimes);
     }
 
@@ -39,16 +39,16 @@ class NetPublisher_IoRedis extends NetBridgeClient_IoRedisBase {
         return this.publishChannel.get(publishKey);
     }
 
-    setPublish(dstPublishKey, srcPublishKey, tmChannel) {
-        tmChannel._io = this._io;
-        tmChannel.publishKey = srcPublishKey;
-        tmChannel._connectStatus = this._connectStatus;
-        tmChannel._pipeline.fnIoDestroy = (io) => { void io; };
-        tmChannel._pipeline.fnIoFin = (io) => { void io; }
-        tmChannel._pipeline.fnIoWrite = (io, data) => {
+    setPublish(dstPublishKey, srcPublishKey, channel) {
+        channel._io = this._io;
+        channel.publishKey = srcPublishKey;
+        channel._connectStatus = this._connectStatus;
+        channel._pipeline.fnIoDestroy = (io) => { void io; };
+        channel._pipeline.fnIoFin = (io) => { void io; }
+        channel._pipeline.fnIoWrite = (io, data) => {
             io.publishBuffer(dstPublishKey, data);
         }
-        this.publishChannel.set(dstPublishKey, tmChannel);
+        this.publishChannel.set(dstPublishKey, channel);
     }
 
     connect(args) {
@@ -84,11 +84,11 @@ class NetSubscriber_IoRedis extends NetBridgeClient_IoRedisBase {
         let self = this;
         this._io.on('messageBuffer', (bufferSubscribeKey, data) => {
             const subscribeKey = bufferSubscribeKey.toString();
-            const tmChannel = self.subscribeChannel.get(subscribeKey);
-            if (!tmChannel) {
+            const channel = self.subscribeChannel.get(subscribeKey);
+            if (!channel) {
                 return;
             }
-            tmChannel.onReadBuffer(data);
+            channel.onReadBuffer(data);
         });
     }
 
@@ -114,12 +114,12 @@ class NetSubscriber_IoRedis extends NetBridgeClient_IoRedisBase {
         return this.subscribeChannel.get(subscribeKey);
     }
 
-    setSubscribe(subscribeKey, tmChannel) {
-        tmChannel._io = this._io;
-        tmChannel._pipeline.fnIoDestroy = (io) => { void io; };
-        tmChannel._pipeline.fnIoFin = (io) => { void io; }
-        tmChannel._pipeline.fnIoWrite = (io, data) => { void io; void data; }
-        this.subscribeChannel.set(subscribeKey, tmChannel);
+    setSubscribe(subscribeKey, channel) {
+        channel._io = this._io;
+        channel._pipeline.fnIoDestroy = (io) => { void io; };
+        channel._pipeline.fnIoFin = (io) => { void io; }
+        channel._pipeline.fnIoWrite = (io, data) => { void io; void data; }
+        this.subscribeChannel.set(subscribeKey, channel);
         let self = this;
         return new Promise((resolve) => {
             self._io.subscribe(subscribeKey, (err) => {

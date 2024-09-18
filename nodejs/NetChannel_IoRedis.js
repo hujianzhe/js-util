@@ -1,7 +1,7 @@
-const { NetChannelBase, NetBridgeChannel } = require('./NetChannelBase.js');
+const { NetChannelBase, NetBridgeClientChannel } = require('./NetChannelBase.js');
 const Redis = require("ioredis");
 
-class NetBridgeChannel_IoRedisBase extends NetBridgeChannel {
+class NetBridgeClient_IoRedisBase extends NetBridgeClientChannel {
     constructor(pipeline) {
         super(pipeline, null, null);
     }
@@ -30,7 +30,7 @@ class NetBridgeChannel_IoRedisBase extends NetBridgeChannel {
     }
 }
 
-class NetPublisher_IoRedis extends NetBridgeChannel_IoRedisBase {
+class NetPublisher_IoRedis extends NetBridgeClient_IoRedisBase {
     constructor(pipeline) {
         super(pipeline);
     }
@@ -74,7 +74,7 @@ class NetPublisher_IoRedis extends NetBridgeChannel_IoRedisBase {
     }
 }
 
-class NetSubscriber_IoRedis extends NetBridgeChannel_IoRedisBase {
+class NetSubscriber_IoRedis extends NetBridgeClient_IoRedisBase {
     constructor(pipeline) {
         super(pipeline);
     }

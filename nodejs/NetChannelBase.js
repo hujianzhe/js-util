@@ -79,8 +79,12 @@ class NetChannelBase {
 	static CONNECT_STATUS_DOING = 1;
 	static CONNECT_STATUS_DONE = 2;
 
-	constructor(pipeline, protocolCoder, side, io) {
+	static SOCK_STREAM = 1;
+	static SOCK_DGRAM = 2;
+
+	constructor(pipeline, protocolCoder, io, side, socktype) {
 		this._io = io;
+		this._socktype = socktype;
 		this._rbf = Buffer.alloc(0);
 		this._heartbeatTimeout = null;
 		this._heartbeatTimes = 0;
@@ -128,6 +132,12 @@ class NetChannelBase {
 		this._lastRecvMsec = Date.now();
 		this._rbf = Buffer.concat([this._rbf, data]);
 		while (true) {
+			if (NetChannelBase.SOCK_STREAM == this._socktype) {
+				if (this._rbf.length <= 0) {
+					this._pipeline.fnIoFin(this._io);
+					break;
+				}
+			}
 			let recvObj = this._protoclCoder.decode(this._rbf);
 			if (!recvObj) {
 				break;
@@ -141,8 +151,8 @@ class NetChannelBase {
 	}
 
 	fin() {
-		if (this._io && this._pipeline.fnIoFin) {
-			this._pipeline.fnIoFin(this.io);
+		if (this._io) {
+			this._pipeline.fnIoFin(this._io);
 		}
 	}
 
@@ -195,13 +205,14 @@ class NetChannelBase {
 		};
 	}
 
-	connectUseStdNet(host, port, timeout_msec) {
+	tcpConnect(host, port, timeout_msec) {
 		if (this.side != NetChannelBase.CLIENT_SIDE) {
 			return null;
 		}
 		if (NetChannelBase.CONNECT_STATUS_NEW != this._connectStatus) {
 			return this;
 		}
+		this._socktype = NetChannelBase.SOCK_STREAM;
 		this._connectStatus = NetChannelBase.CONNECT_STATUS_DOING;
 		let self = this;
 		return new Promise((resolve) => {
@@ -284,9 +295,9 @@ class NetChannelBase {
 	}
 }
 
-class NetBridgeChannel extends NetChannelBase {
+class NetBridgeClientChannel extends NetChannelBase {
 	constructor(pipeline, protocolCoder, io) {
-		super(pipeline, protocolCoder, NetChannelBase.CLIENT_SIDE, io);
+		super(pipeline, protocolCoder, io, NetChannelBase.CLIENT_SIDE, 0);
 		this.publishChannel = new Map();
 		this.subscribeChannel = new Map();
 	}
@@ -356,6 +367,6 @@ module.exports = {
 	NetProtocolCoderBase,
 	NetChannelPipelineBase,
 	NetChannelBase,
-	NetBridgeChannel,
+	NetBridgeClientChannel,
 	NetSessionBase
 };

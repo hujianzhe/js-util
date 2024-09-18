@@ -29,42 +29,40 @@ class NetChannelPipelineBase {
 	}
 
 	newReqObj(timeout_msec) {
-		const req = this._genReqId();
-		if (this._reqMap.has(req)) { // TOO BUSY...
+		const reqId = this._genReqId();
+		if (this._reqMap.has(reqId)) { // TOO BUSY...
 			return null;
 		}
 		let self = this;
 		let reqObj = {};
-		reqObj.req = req;
 		reqObj.tmMsec = Date.now();
 		reqObj.timeoutId = null;
-		reqObj.promise = new Promise((resolve) => {
+		new Promise((resolve) => {
 			reqObj.resolve = resolve;
 			if (timeout_msec > 0) {
 				reqObj.timeoutId = setTimeout(() => {
-					self._reqMap.delete(req);
+					self._reqMap.delete(reqId);
 					clearTimeout(reqObj.timeoutId);
 					resolve(null);
 				}, timeout_msec);
 			}
 		});
-		this._reqMap.set(req, reqObj);
+		this._reqMap.set(reqId, reqObj);
 		return reqObj;
 	}
 
 	resumeReqObj(reqId, decodeObj, tmMsec) {
 		let reqObj = this._reqMap.get(reqId);
-		if (reqObj) {
-			this._reqMap.delete(reqId);
-			decodeObj.costMsec = tmMsec - reqObj.tmMsec;
-
-			if (reqObj.timeoutId) {
-				clearTimeout(reqObj.timeoutId);
-				reqObj.timeoutId = null;
-			}
-			reqObj.promise = null;
-			reqObj.resolve(decodeObj);
+		if (!reqObj) {
+			return;
 		}
+		this._reqMap.delete(reqId);
+		decodeObj.costMsec = tmMsec - reqObj.tmMsec;
+		if (reqObj.timeoutId) {
+			clearTimeout(reqObj.timeoutId);
+			reqObj.timeoutId = null;
+		}
+		reqObj.resolve(decodeObj);
 	}
 }
 

@@ -40,8 +40,8 @@ class NetIoRedisPublishClientHub extends NetIoRedisClientHub {
     }
 
     setPublish(dstPublishKey, srcPublishKey, channel) {
-        channel._io = this._io;
         channel.publishKey = srcPublishKey;
+        channel._io = this._io;
         channel._connectStatus = this._connectStatus;
         channel._pipeline.fnIoDestroy = (io) => { void io; };
         channel._pipeline.fnIoFin = (io) => { void io; }

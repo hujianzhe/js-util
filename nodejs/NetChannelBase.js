@@ -103,6 +103,7 @@ class NetChannelBase {
 	}
 
 	_onClose(err) {
+		console.log("onCLose");
 		if (this._io) {
 			this._pipeline.fnIoDestroy(this._io);
 			this._io = null;
@@ -130,12 +131,6 @@ class NetChannelBase {
 		this._lastRecvMsec = Date.now();
 		this._rbf = Buffer.concat([this._rbf, data]);
 		while (true) {
-			if (NetChannelBase.SOCK_STREAM == this._socktype) {
-				if (this._rbf.length <= 0) {
-					this._pipeline.fnIoFin(this._io);
-					break;
-				}
-			}
 			let recvObj = this._protoclCoder.decode(this._rbf, rinfo);
 			if (!recvObj) {
 				break;

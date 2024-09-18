@@ -36,6 +36,9 @@ class NetIoRedisPublishClientHub extends NetIoRedisClientHub {
     }
 
     addPublish(dstPublishKey, srcPublishKey, channel) {
+        if (NetChannelBase.PUBLISH_SIDE != channel._side) {
+            return;
+        }
         channel.publishKey = srcPublishKey;
         channel._pipeline.fnIoWrite = (io, data) => {
             io.publishBuffer(dstPublishKey, data);
@@ -97,6 +100,9 @@ class NetIoRedisSubscribeClientHub extends NetIoRedisClientHub {
     }
 
     async addSubscribe(subscribeKey, channel) {
+        if (NetChannelBase.SUBSCRIBE_SIDE != channel._side) {
+            return new Error("NetIoRedisSubscribeClientHub::addSubscribe channel._side != SUBSCRIBE_SIDE");
+        }
         channel._pipeline.fnIoWrite = (io, data) => { void io; void data; }
         let self = this;
         const err = await new Promise((resolve) => {

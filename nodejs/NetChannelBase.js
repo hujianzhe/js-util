@@ -134,6 +134,7 @@ class NetChannelBase {
 			this._connectResolve(null);
 			this._connectResolve = null;
 		}
+		this._rbf = null;
 		this._ready_fin = false;
 		this._waitSendBufferWhenConnecting = null;
 

@@ -2,6 +2,17 @@ const net = require('net');
 
 class NetProtocolCoderBase {
 	constructor() {
+		this._autoIncrReqId = 0;
+	}
+
+	_genReqId() {
+		if (this._autoIncrReqId == Number.MAX_SAFE_INTEGER) {
+			this._autoIncrReqId = 1;
+		}
+		else {
+			++this._autoIncrReqId;
+		}
+		return this._autoIncrReqId;
 	}
 
 	decode(buff, rinfo) {
@@ -13,14 +24,9 @@ class NetProtocolCoderBase {
 class NetChannelPipelineBase {
 	constructor() {
 		this._reqMap = new Map();
-
 		this.fnIoWrite = null;
 		this.fnIoFin = null;
 		this.fnIoDestroy = null;
-	}
-
-	_genReqId() {
-		throw new Error("NetChannelPipelineBase::_genReqId must implement");
 	}
 
 	async handleDecodeObj(channel, decodeObj) {
@@ -28,8 +34,7 @@ class NetChannelPipelineBase {
 		throw new Error("NetChannelPipelineBase::handleDecodeObj must implement");
 	}
 
-	newReqObj(timeout_msec) {
-		const reqId = this._genReqId();
+	newReqObj(reqId, timeout_msec) {
 		if (this._reqMap.has(reqId)) { // TOO BUSY...
 			return null;
 		}
@@ -128,7 +133,7 @@ class NetChannelBase {
 		this._heartbeatTimes = 0;
 		this._lastRecvMsec = Date.now();
 		this._rbf = Buffer.concat([this._rbf, data]);
-		while (this._rbf.length > 0) {
+		do {
 			let decodeObj;
 			try {
 				decodeObj = this._protoclCoder.decode(this._rbf, rinfo);
@@ -152,7 +157,7 @@ class NetChannelBase {
 				this._pipeline.handleDecodeObj(this, decodeObj);
 			}
 			catch (e) { void e; }
-		}
+		} while (this._rbf.length > 0);
 	}
 
 	fin() {

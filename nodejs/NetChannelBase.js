@@ -18,7 +18,7 @@ class NetProtocolCoderBase {
 
 	decode(buff, rinfo) {
 		void buff, rinfo;
-		throw new Error("NetProtocolCoderBase::decode must implement");
+		return null;
 	}
 }
 
@@ -32,7 +32,6 @@ class NetChannelPipelineBase {
 
 	async handleDecodeObj(channel, decodeObj) {
 		void channel; void decodeObj;
-		throw new Error("NetChannelPipelineBase::handleDecodeObj must implement");
 	}
 
 	newReqObj(reqId, timeout_msec) {

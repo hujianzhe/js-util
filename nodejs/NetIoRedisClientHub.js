@@ -35,15 +35,14 @@ class NetIoRedisPublishClientHub extends NetIoRedisClientHub {
         super(pipeline);
     }
 
-    addPublish(dstPublishKey, srcPublishKey, channel) {
+    addPublish(publishKey, channel) {
         if (NetChannelBase.PUBLISH_SIDE != channel._side) {
             return;
         }
-        channel.publishKey = srcPublishKey;
         channel._pipeline.fnIoWrite = (io, data) => {
-            io.publishBuffer(dstPublishKey, data);
+            io.publishBuffer(publishKey, data);
         }
-        this.addChannel(dstPublishKey, channel);
+        this.addChannel(publishKey, channel);
     }
 
     connect(args) {

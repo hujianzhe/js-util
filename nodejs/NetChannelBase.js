@@ -69,6 +69,17 @@ class NetChannelPipelineBase {
 		}
 		reqObj.resolve(decodeObj);
 	}
+
+	_onClose() {
+		for (let reqObj of this._reqMap) {
+			if (reqObj.timeoutId) {
+				clearTimeout(reqObj.timeoutId);
+				reqObj.timeoutId = null;
+			}
+			reqObj.resolve(null);
+		}
+		this._reqMap.clear();
+	}
 }
 
 class NetChannelBase {
@@ -106,8 +117,13 @@ class NetChannelBase {
 	}
 
 	_onClose(err) {
+		if (this._pipeline) {
+			this._pipeline._onClose();
+		}
 		if (this._io) {
-			this._pipeline.fnIoDestroy(this._io);
+			if (this._pipeline) {
+				this._pipeline.fnIoDestroy(this._io);
+			}
 			this._io = null;
 		}
 		if (this._heartbeatTimeout) {

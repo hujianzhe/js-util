@@ -398,6 +398,22 @@ class NetBridgeClientHub extends NetChannelBase {
 		}
 	}
 
+	_onClose(err) {
+		for (const channel of this.publishChannel) {
+			try {
+				channel._onClose(err);
+			} catch (e) { void e; }
+		}
+		for (const channel of this.subscribeChannel) {
+			try {
+				channel._onClose(err);
+			} catch (e) { void e; }
+		}
+		try {
+			super._onClose(err);
+		} catch (e) { void e; }
+	}
+
 	setClientSideHeartbeat(fnHeartbeat, interval, maxTimes) {
 		if (NetChannelBase.CONNECT_STATUS_NEW == this._connectStatus) {
 			return;
@@ -419,18 +435,7 @@ class NetBridgeClientHub extends NetChannelBase {
 				return;
 			}
 			self._heartbeatTimeout = null;
-			const err = new Error("TaomeeBridgeChannel hearbeat timeout");
-			for (const channel of self.publishChannel) {
-				try {
-					channel._onClose(err);
-				} catch (e) { void e; }
-			}
-			for (const channel of self.subscribeChannel) {
-				try {
-					channel._onClose(err);
-				} catch (e) { void e; }
-			}
-			self._onClose(err);
+			self._onClose(new Error("TaomeeBridgeChannel hearbeat timeout"));
 		};
 		self._heartbeatTimeout = setTimeout(fn, interval);
 	}

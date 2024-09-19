@@ -13,7 +13,7 @@ class NetIoRedisClientHub extends NetBridgeClientHub {
         }, interval, maxTimes);
     }
 
-    useEvent() {
+    _useEvent() {
         let self = this;
         this._io.on('error', (err) => {
             self._onClose(err);
@@ -54,7 +54,7 @@ class NetIoRedisPublishClientHub extends NetIoRedisClientHub {
         return new Promise((resolve) => {
             self._connectResolve = resolve;
             self._io = new Redis(args);
-            self.useEvent();
+            self._useEvent();
             self._io.on('ready', () => {
                 self._onConnectSuccess();
                 resolve(self);
@@ -68,8 +68,8 @@ class NetIoRedisSubscribeClientHub extends NetIoRedisClientHub {
         super(pipeline);
     }
 
-    useEvent() {
-        super.useEvent();
+    _useEvent() {
+        super._useEvent();
         let self = this;
         this._io.on('messageBuffer', (bufferSubscribeKey, data) => {
             const subscribeKey = bufferSubscribeKey.toString();
@@ -90,7 +90,7 @@ class NetIoRedisSubscribeClientHub extends NetIoRedisClientHub {
         return new Promise((resolve) => {
             self._connectResolve = resolve;
             self._io = new Redis(args);
-            self.useEvent();
+            self._useEvent();
             self._io.on('ready', () => {
                 self._onConnectSuccess();
                 resolve(self);

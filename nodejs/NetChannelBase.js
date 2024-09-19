@@ -3,10 +3,11 @@ const net = require('net');
 class NetProtocolCoderBase {
 	constructor() {
 		this._autoIncrReqId = 0;
+		this._autoIncrMaxReqId = 0x80000000;
 	}
 
 	_genReqId() {
-		if (this._autoIncrReqId == Number.MAX_SAFE_INTEGER) {
+		if (this._autoIncrReqId == this._autoIncrMaxReqId) {
 			this._autoIncrReqId = 1;
 		}
 		else {

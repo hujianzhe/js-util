@@ -196,20 +196,24 @@ class NetChannelBase {
 	}
 
 	write(buff) {
-		if (this._io) {
-			if (NetChannelBase.CONNECT_STATUS_DOING == this._connectStatus) {
-				let newBuf;
-				if (this._waitSendBufferWhenConnecting) {
-					newBuf = Buffer.concat([this._waitSendBufferWhenConnecting, buff]);
-				}
-				else {
-					newBuf = Buffer.concat([buff]);
-				}
-				this._waitSendBufferWhenConnecting = newBuf;
-				return;
-			}
-			this._pipeline.fnIoWrite(this._io, buff);
+		if (!this._io) {
+			return;
 		}
+		if (typeof buff === 'string') {
+			buff = Buffer.from(buff);
+		}
+		if (NetChannelBase.CONNECT_STATUS_DOING == this._connectStatus) {
+			let newBuf;
+			if (this._waitSendBufferWhenConnecting) {
+				newBuf = Buffer.concat([this._waitSendBufferWhenConnecting, buff]);
+			}
+			else {
+				newBuf = Buffer.concat([buff]);
+			}
+			this._waitSendBufferWhenConnecting = newBuf;
+			return;
+		}
+		this._pipeline.fnIoWrite(this._io, buff);
 	}
 
 	useStdNetEvent() {

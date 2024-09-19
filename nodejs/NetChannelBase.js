@@ -70,7 +70,7 @@ class NetChannelPipelineBase {
 		reqObj.resolve(decodeObj);
 	}
 
-	_onClose() {
+	cancelAllReqObjs() {
 		for (let reqObj of this._reqMap) {
 			if (reqObj.timeoutId) {
 				clearTimeout(reqObj.timeoutId);
@@ -118,7 +118,7 @@ class NetChannelBase {
 
 	_onClose(err) {
 		if (this._pipeline) {
-			this._pipeline._onClose();
+			this._pipeline.cancelAllReqObjs();
 		}
 		if (this._io) {
 			if (this._pipeline) {

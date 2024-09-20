@@ -3,7 +3,7 @@ const Redis = require("ioredis");
 
 class NetIoRedisClientHubBase extends NetBridgeClientHub {
     constructor(pipeline) {
-        super(pipeline, null, null);
+        super(pipeline, null);
     }
 
     setHeartbeat(interval, maxTimes) {

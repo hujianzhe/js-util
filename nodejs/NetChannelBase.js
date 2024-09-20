@@ -1,12 +1,25 @@
 const net = require('net');
 
-class NetProtocolCoderBase {
+class NetChannelPipelineBase {
 	constructor() {
 		this._autoIncrReqId = 0;
 		this._autoIncrMaxReqId = 0x80000000;
+		this._reqMap = new Map();
+
+		this.fnIoWrite = null;
+		this.fnIoFin = null;
+		this.fnIoDestroy = null;
+
+		this.fnDecodeBuffer = function (buff, rinfo) {
+			void buff, rinfo;
+			return null;
+		};
+		this.fnHandleDecodeObj = function (channel, decodeObj) {
+			void channel; void decodeObj;
+		};
 	}
 
-	_genReqId() {
+	genReqId() {
 		if (this._autoIncrReqId == this._autoIncrMaxReqId) {
 			this._autoIncrReqId = 1;
 		}
@@ -14,24 +27,6 @@ class NetProtocolCoderBase {
 			++this._autoIncrReqId;
 		}
 		return this._autoIncrReqId;
-	}
-
-	decode(buff, rinfo) {
-		void buff, rinfo;
-		return null;
-	}
-}
-
-class NetChannelPipelineBase {
-	constructor() {
-		this._reqMap = new Map();
-		this.fnIoWrite = null;
-		this.fnIoFin = null;
-		this.fnIoDestroy = null;
-	}
-
-	async handleDecodeObj(channel, decodeObj) {
-		void channel; void decodeObj;
 	}
 
 	newReqObj(reqId, timeout_msec) {
@@ -95,14 +90,13 @@ class NetChannelBase {
 	static SOCK_STREAM = 1;
 	static SOCK_DGRAM = 2;
 
-	constructor(pipeline, protocolCoder, io, side, socktype) {
+	constructor(pipeline, io, side, socktype) {
 		this._io = io;
 		this._socktype = socktype;
 		this._rbf = Buffer.alloc(0);
 		this._heartbeatTimeout = null;
 		this._heartbeatTimes = 0;
 		this._lastRecvMsec = 0;
-		this._protoclCoder = protocolCoder;
 		this._pipeline = pipeline;
 		this._side = side;
 		this._connectStatus = NetChannelBase.CONNECT_STATUS_NEW;
@@ -153,7 +147,7 @@ class NetChannelBase {
 		do {
 			let decodeObj;
 			try {
-				decodeObj = this._protoclCoder.decode(this._rbf, rinfo);
+				decodeObj = this._pipeline.fnDecodeBuffer(this._rbf, rinfo);
 				if (!decodeObj) {
 					break;
 				}
@@ -171,7 +165,7 @@ class NetChannelBase {
 			}
 			this._rbf = this._rbf.subarray(decodeObj.totalLength);
 			try {
-				this._pipeline.handleDecodeObj(this, decodeObj);
+				this._pipeline.fnHandleDecodeObj(this, decodeObj);
 			}
 			catch (e) { void e; }
 		} while (this._rbf.length > 0);
@@ -356,8 +350,8 @@ class NetChannelBase {
 }
 
 class NetBridgeClientHub extends NetChannelBase {
-	constructor(pipeline, protocolCoder, io) {
-		super(pipeline, protocolCoder, io, NetChannelBase.CLIENT_SIDE, 0);
+	constructor(pipeline, io) {
+		super(pipeline, io, NetChannelBase.CLIENT_SIDE, 0);
 		this.publishChannel = new Map();
 		this.subscribeChannel = new Map();
 	}
@@ -464,7 +458,6 @@ class NetSessionBase {
 }
 
 module.exports = {
-	NetProtocolCoderBase,
 	NetChannelPipelineBase,
 	NetChannelBase,
 	NetBridgeClientHub,

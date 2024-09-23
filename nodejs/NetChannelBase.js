@@ -17,6 +17,9 @@ class NetChannelPipelineBase {
 		this.fnHandleDecodeObj = function (channel, decodeObj) {
 			void channel; void decodeObj;
 		};
+		this.fnHandleClose = function (err, channel) {
+			void err, channel;
+		};
 	}
 
 	genReqId() {
@@ -111,9 +114,6 @@ class NetChannelBase {
 	}
 
 	_onClose(err) {
-		if (this._pipeline) {
-			this._pipeline.cancelAllReqObjs();
-		}
 		if (this._io) {
 			if (this._pipeline) {
 				this._pipeline.fnIoDestroy(this._io);
@@ -132,6 +132,10 @@ class NetChannelBase {
 		this._ready_fin = false;
 		this._waitSendBufferWhenConnecting = null;
 
+		if (this._pipeline) {
+			this._pipeline.cancelAllReqObjs();
+			this._pipeline.fnHandleClose(err, this);
+		}
 		let sessionObj = this.sessionObj;
 		if (sessionObj) {
 			this.sessionObj = null;

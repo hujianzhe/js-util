@@ -17,8 +17,8 @@ class NetChannelPipelineBase {
 		this.fnHandleDecodeObj = function (channel, decodeObj) {
 			void channel; void decodeObj;
 		};
-		this.fnHandleClose = function (err, channel) {
-			void err, channel;
+		this.fnHandleClose = function (channel, err) {
+			void channel, err;
 		};
 	}
 
@@ -134,13 +134,7 @@ class NetChannelBase {
 
 		if (this._pipeline) {
 			this._pipeline.cancelAllReqObjs();
-			this._pipeline.fnHandleClose(err, this);
-		}
-		let sessionObj = this.sessionObj;
-		if (sessionObj) {
-			this.sessionObj = null;
-			sessionObj.channel = null;
-			sessionObj.onDisconnect(err, this);
+			this._pipeline.fnHandleClose(this, err);
 		}
 	}
 
@@ -438,32 +432,8 @@ class NetBridgeClientHub extends NetChannelBase {
 	}
 }
 
-class NetSessionBase {
-	constructor(id) {
-		this.id = id;
-		this.channel = null;
-	}
-
-	replaceChannel(new_channel) {
-		let old_channel = this.channel;
-		if (old_channel === new_channel) {
-			return;
-		}
-		if (old_channel) {
-			old_channel.sessionObj = null;
-		}
-		if (new_channel) {
-			new_channel.sessionObj = this;
-		}
-		this.channel = new_channel;
-	}
-
-	async onDisconnect(err, old_ch) { void err; void old_ch; }
-}
-
 module.exports = {
 	NetChannelPipelineBase,
 	NetChannelBase,
-	NetBridgeClientHub,
-	NetSessionBase
+	NetBridgeClientHub
 };

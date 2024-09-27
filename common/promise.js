@@ -78,11 +78,12 @@ js_util.Common.promise_timeout = function(promise_arg, timeout_msec) {
 js_util.Common.ResolveSet = class ResolveSet {
     constructor() {
         this.default_id_seq = 0;
+        this.default_id_seq_max = 0x80000000;
         this.resolve_map = new Map();
 
         this.next_id = function () {
             let v;
-            if (this.default_id_seq == Number.MAX_SAFE_INTEGER) {
+            if (this.default_id_seq == this.default_id_seq_max) {
                 this.default_id_seq = 1;
             }
             while (0 == (v = this.default_id_seq++));

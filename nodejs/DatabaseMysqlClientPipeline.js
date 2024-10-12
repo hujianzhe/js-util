@@ -53,4 +53,6 @@ class DatabaseMysqlClientPipeline extends DatabaseClientPipeline {
     }
 }
 
-module.exports = DatabaseMysqlClientPipeline;
+module.exports = {
+    DatabaseMysqlClientPipeline
+};

@@ -1,10 +1,8 @@
 if (typeof js_util === 'undefined') {
-    const is_node = (new Function("try { return global === this; } catch(e) {} return false;"))();
-    if (is_node) {
+    if ((new Function("try { return global === this; } catch(e) {} return false;"))()) {
         global.js_util = {};
     }
-    const is_browser = (new Function("try { return window === this; } catch(e) {} return false;"))();
-    if (is_browser) {
+    else if ((new Function("try { return window === this; } catch(e) {} return false;"))()) {
         window.js_util = {};
     }
     else {

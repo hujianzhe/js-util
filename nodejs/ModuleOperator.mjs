@@ -2,7 +2,7 @@ import module from 'internal/process/esm_loader'; // --expose-internals
 import path from 'path';
 import url from 'url';
 
-class ModuleOperator {
+export class ModuleOperator {
     constructor(module_path) {
         this.url = url.pathToFileURL(path.resolve(module_path)).href;
         this.path = module_path;
@@ -18,7 +18,3 @@ class ModuleOperator {
         await import(this.path);
     }
 }
-
-module.exports = {
-    ModuleOperator
-};

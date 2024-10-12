@@ -9,12 +9,6 @@ js_util.Common.HOST_ENV = {
     NODE: 2
 };
 
-js_util.Common.HOST_BROWSER_ENV = {
-    UNKKNOW : 0,
-    PC : 1,
-    MOBILE : 2
-};
-
 js_util.Common.host_env = function() {
     const is_node = (new Function("try { return global === this; } catch(e) {} return false;"))();
     if (is_node) {
@@ -27,6 +21,17 @@ js_util.Common.host_env = function() {
     return js_util.Common.HOST_ENV.UNKKNOW;
 };
 
+js_util.Common.env_global = function() {
+    const v = js_util.Common.host_env();
+    if (v === js_util.Common.HOST_ENV.NODE) {
+        return global;
+    }
+    if (v === js_util.Common.HOST_ENV.BROWSER) {
+        return window;
+    }
+    return null;
+};
+
 js_util.Common.host_env_string = function () {
     const env = js_util.Common.host_env();
     switch (env) {
@@ -36,6 +41,12 @@ js_util.Common.host_env_string = function () {
             return "node";
     }
     return "";
+};
+
+js_util.Common.HOST_BROWSER_ENV = {
+    UNKKNOW : 0,
+    PC : 1,
+    MOBILE : 2
 };
 
 js_util.Common.host_browser_env = function () {

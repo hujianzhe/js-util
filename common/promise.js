@@ -82,12 +82,13 @@ js_util.Common.ResolveSet = class ResolveSet {
         this.resolve_map = new Map();
 
         this.next_id = function () {
-            let v;
             if (this.default_id_seq == this.default_id_seq_max) {
                 this.default_id_seq = 1n;
             }
-            while (0n == (v = this.default_id_seq++));
-            return v;
+            else {
+                ++this.default_id_seq;
+            }
+            return this.default_id_seq;
         };
     }
 

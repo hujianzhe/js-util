@@ -2,8 +2,8 @@ const net = require('net');
 
 class NetChannelPipelineBase {
 	constructor() {
-		this._autoIncrReqId = 0;
-		this._autoIncrMaxReqId = 0x80000000;
+		this._autoIncrReqId = 0n;
+		this._autoIncrMaxReqId = 0xFFFFFFFFFFFFFFFFn;
 		this._reqMap = new Map();
 
 		this.fnIoWrite = null;
@@ -24,7 +24,7 @@ class NetChannelPipelineBase {
 
 	genReqId() {
 		if (this._autoIncrReqId == this._autoIncrMaxReqId) {
-			this._autoIncrReqId = 1;
+			this._autoIncrReqId = 1n;
 		}
 		else {
 			++this._autoIncrReqId;

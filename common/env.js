@@ -1,5 +1,15 @@
 if (typeof js_util === 'undefined') {
-    js_util = {};
+    const is_node = (new Function("try { return global === this; } catch(e) {} return false;"))();
+    if (is_node) {
+        global.js_util = {};
+    }
+    const is_browser = (new Function("try { return window === this; } catch(e) {} return false;"))();
+    if (is_browser) {
+        window.js_util = {};
+    }
+    else {
+        js_util = {};
+    }
 }
 js_util.Common = js_util.Common || {};
 

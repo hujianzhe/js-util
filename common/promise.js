@@ -77,21 +77,22 @@ js_util.Common.promise_timeout = function(promise_arg, timeout_msec) {
 
 js_util.Common.ResolveSet = class ResolveSet {
     constructor() {
-        this.default_id_seq = 0;
-        this.default_id_seq_max = 0x80000000;
+        this.default_id_seq = 0n;
+        this.default_id_seq_max = 0xFFFFFFFFFFFFFFFFn;
         this.resolve_map = new Map();
 
         this.next_id = function () {
             let v;
             if (this.default_id_seq == this.default_id_seq_max) {
-                this.default_id_seq = 1;
+                this.default_id_seq = 1n;
             }
-            while (0 == (v = this.default_id_seq++));
+            while (0n == (v = this.default_id_seq++));
             return v;
         };
     }
 
     expect(resolve_id, opts = { timeout_msec : 5000 }) {
+        resolve_id = BigInt(resolve_id);
         if (this.resolve_map.has(resolve_id)) {
             return null;
         }
@@ -101,6 +102,7 @@ js_util.Common.ResolveSet = class ResolveSet {
     }
 
     resume(resolve_id, ret_data) {
+        resolve_id = BigInt(resolve_id);
         const resolve = this.resolve_map.get(resolve_id);
         if (!resolve) {
             return;

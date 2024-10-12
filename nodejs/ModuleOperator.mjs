@@ -3,18 +3,14 @@ import path from 'path';
 import url from 'url';
 
 export class ModuleOperator {
-    constructor(module_path) {
-        this.url = url.pathToFileURL(path.resolve(module_path)).href;
-        this.path = module_path;
-    }
-
-    async reload() {
+    static async pathReload(module_path) {
+        const module_url = url.pathToFileURL(path.resolve(module_path)).href;
         if (module.esmLoader) {
-            module.esmLoader.moduleMap.delete(this.url);
+            module.esmLoader.moduleMap.delete(module_url);
         }
         else {
-            module.ESMLoader.moduleMap.delete(this.url);
+            module.ESMLoader.moduleMap.delete(module_url);
         }
-        await import(this.path);
+        await import(module_url);
     }
 }

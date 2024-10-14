@@ -3,8 +3,10 @@ import path from 'path';
 import url from 'url';
 
 export class ModuleOperator {
-    static async pathReload(module_path) {
-        const module_url = url.pathToFileURL(path.resolve(module_path)).href;
+    static pathToURL(module_path) {
+        return url.pathToFileURL(path.resolve(module_path)).href;
+    }
+    static async reloadURL(module_url) {
         if (module.esmLoader) {
             module.esmLoader.moduleMap.delete(module_url);
         }

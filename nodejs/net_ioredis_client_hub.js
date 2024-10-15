@@ -77,7 +77,7 @@ class NetIoRedisSubscribeClientHub extends NetIoRedisClientHubBase {
             if (!channel) {
                 return;
             }
-            channel.onReadBuffer(data);
+            channel.readBuffer(data);
         });
     }
 

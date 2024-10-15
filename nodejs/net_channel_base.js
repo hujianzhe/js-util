@@ -97,7 +97,7 @@ class NetChannelBase {
 		}
 	}
 
-	onReadBuffer(data, rinfo) {
+	readBuffer(data, rinfo) {
 		this._heartbeatTimes = 0;
 		this._lastRecvMsec = Date.now();
 		this._rbf = Buffer.concat([this._rbf, data]);
@@ -109,15 +109,15 @@ class NetChannelBase {
 					break;
 				}
 				if (decodeObj.totalLength === undefined || decodeObj.totalLength === null) {
-					this._onClose(new Error("NetChannelBase::onReadBuffer miss totalLength field"));
+					this._onClose(new Error("NetChannelBase::readBuffer miss totalLength field"));
 					return;
 				}
 				if (decodeObj.totalLength < 0) {
-					this._onClose(new Error("NetChannelBase::onReadBuffer decode exception"));
+					this._onClose(new Error("NetChannelBase::readBuffer decode exception"));
 					return;
 				}
 			} catch (e) {
-				this._onClose(new Error("NetChannelBase::onReadBuffer decode exception"));
+				this._onClose(new Error("NetChannelBase::readBuffer decode exception"));
 				return;
 			}
 			this._rbf = this._rbf.subarray(decodeObj.totalLength);
@@ -173,12 +173,12 @@ class NetChannelBase {
 		if (NetChannelBase.SOCK_STREAM == this._socktype) {
 			this._io.setNoDelay();
 			this._io.on('data', (data) => {
-				self.onReadBuffer(data, null);
+				self.readBuffer(data, null);
 			});
 		}
 		else if (NetChannelBase.SOCK_DGRAM == this._socktype) {
 			this._io.on('message', (data, rinfo) => {
-				self.onReadBuffer(data, rinfo);
+				self.readBuffer(data, rinfo);
 			});
 		}
 		this._io.on('error', (err) => {

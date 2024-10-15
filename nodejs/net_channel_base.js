@@ -314,5 +314,6 @@ class NetChannel extends NetChannelBase {
 
 module.exports = {
 	NetChannelPipelineBase,
-	NetChannelBase
+	NetChannelBase,
+	NetChannel
 };

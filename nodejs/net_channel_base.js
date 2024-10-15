@@ -2,10 +2,6 @@ const net = require('net');
 
 class NetChannelPipelineBase {
 	constructor() {
-		this._autoIncrReqId = 0n;
-		this._autoIncrMaxReqId = 0xFFFFFFFFFFFFFFFFn;
-		this._reqMap = new Map();
-
 		this.fnIoWrite = null;
 		this.fnIoFin = null;
 		this.fnIoDestroy = null;
@@ -20,63 +16,6 @@ class NetChannelPipelineBase {
 		this.fnHandleClose = function (channel, err) {
 			void channel, err;
 		};
-	}
-
-	genReqId() {
-		if (this._autoIncrReqId == this._autoIncrMaxReqId) {
-			this._autoIncrReqId = 1n;
-		}
-		else {
-			++this._autoIncrReqId;
-		}
-		return this._autoIncrReqId;
-	}
-
-	newReqObj(reqId, timeout_msec) {
-		if (this._reqMap.has(reqId)) { // TOO BUSY...
-			return null;
-		}
-		let self = this;
-		let reqObj = {};
-		reqObj.tmMsec = Date.now();
-		reqObj.timeoutId = null;
-		new Promise((resolve) => {
-			reqObj.resolve = resolve;
-			if (timeout_msec > 0) {
-				reqObj.timeoutId = setTimeout(() => {
-					self._reqMap.delete(reqId);
-					clearTimeout(reqObj.timeoutId);
-					resolve(null);
-				}, timeout_msec);
-			}
-		});
-		this._reqMap.set(reqId, reqObj);
-		return reqObj;
-	}
-
-	resumeReqObj(reqId, decodeObj, tmMsec) {
-		let reqObj = this._reqMap.get(reqId);
-		if (!reqObj) {
-			return;
-		}
-		this._reqMap.delete(reqId);
-		decodeObj.costMsec = tmMsec - reqObj.tmMsec;
-		if (reqObj.timeoutId) {
-			clearTimeout(reqObj.timeoutId);
-			reqObj.timeoutId = null;
-		}
-		reqObj.resolve(decodeObj);
-	}
-
-	cancelAllReqObjs() {
-		for (let reqObj of this._reqMap) {
-			if (reqObj.timeoutId) {
-				clearTimeout(reqObj.timeoutId);
-				reqObj.timeoutId = null;
-			}
-			reqObj.resolve(null);
-		}
-		this._reqMap.clear();
 	}
 }
 
@@ -154,7 +93,6 @@ class NetChannelBase {
 		this._waitSendBufferWhenConnecting = null;
 
 		if (this._pipeline) {
-			this._pipeline.cancelAllReqObjs();
 			this._pipeline.fnHandleClose(this, err);
 		}
 	}

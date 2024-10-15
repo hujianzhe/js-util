@@ -126,7 +126,7 @@ class NetChannelBase {
 		this._connectResolve = null;
 		this._ready_fin = false;
 		this._waitSendBufferWhenConnecting = null;
-		this.sessionObj = null;
+		this.session = null;
 	}
 
 	get side() {

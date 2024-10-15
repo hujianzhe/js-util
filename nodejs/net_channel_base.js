@@ -93,6 +93,26 @@ class NetChannelBase {
 	static SOCK_STREAM = 1;
 	static SOCK_DGRAM = 2;
 
+	static string2socktype(s) {
+		switch (s) {
+			case 'SOCK_STREAM':
+				return NetChannelBase.SOCK_STREAM;
+			case 'SOCK_DGRAM':
+				return NetChannelBase.SOCK_DGRAM;
+		}
+		return 0;
+	}
+	
+	static socktype2string(socktype) {
+		switch (socktype) {
+			case NetChannelBase.SOCK_STREAM:
+				return 'SOCK_STREAM';
+			case NetChannelBase.SOCK_DGRAM:
+				return 'SOCK_DGRAM';
+		}
+		return '';
+	}
+
 	constructor(pipeline, io, side, socktype) {
 		this._io = io;
 		this._socktype = socktype;

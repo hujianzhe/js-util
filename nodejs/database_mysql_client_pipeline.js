@@ -1,4 +1,4 @@
-const { DatabaseClientPipeline } = require('./DatabaseClientPart.js');
+const { DatabaseClientPipeline } = require('./database_client_part.js');
 const Mysql2 = require('mysql2');
 
 class DatabaseMysqlClientPipeline extends DatabaseClientPipeline {

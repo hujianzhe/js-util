@@ -1,4 +1,4 @@
-const { NetChannelBase, NetBridgeClientHub, NetChannelPipelineBase } = require('./NetChannelBase.js');
+const { NetChannelBase, NetBridgeClientHub, NetChannelPipelineBase } = require('./net_channel_base.js');
 const Redis = require("ioredis");
 
 class NetIoRedisClientHubBase extends NetBridgeClientHub {

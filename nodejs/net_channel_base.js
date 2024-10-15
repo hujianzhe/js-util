@@ -126,6 +126,7 @@ class NetChannelBase {
 		this._connectResolve = null;
 		this._ready_fin = false;
 		this._waitSendBufferWhenConnecting = null;
+		this.connectTimeoutMsec = 5000;
 		this.session = null;
 	}
 
@@ -259,7 +260,7 @@ class NetChannelBase {
 		};
 	}
 
-	tcpConnect(host, port, timeout_msec) {
+	tcpConnect(host, port) {
 		if (this.side != NetChannelBase.CLIENT_SIDE) {
 			return null;
 		}
@@ -284,7 +285,7 @@ class NetChannelBase {
 		return new Promise((resolve) => {
 			self._connectResolve = resolve;
 			let conn_timeout_id = null;
-			if (timeout_msec > 0) {
+			if (self.connectTimeoutMsec > 0) {
 				conn_timeout_id = setTimeout(() => {
 					clearTimeout(conn_timeout_id);
 					self._connectResolve = null;
@@ -292,7 +293,7 @@ class NetChannelBase {
 					self._io = null;
 					self._onClose(new Error("NetChannelBase connect timeout"));
 					resolve(null);
-				}, timeout_msec);
+				}, self.connectTimeoutMsec);
 			}
 			self._io = net.createConnection({ host: host, port: port }, () => {
 				self._connectResolve = null;

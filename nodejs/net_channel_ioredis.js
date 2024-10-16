@@ -1,9 +1,9 @@
-const { NetChannelBase, NetChannelPipelineBase } = require('./net_channel_base.js');
+const { NetConst, NetChannelBase, NetChannelPipelineBase } = require('./net_channel_base.js');
 const Redis = require("ioredis");
 
 class NetIoRedisClientChannel extends NetChannelBase {
     constructor(io) {
-        super(new NetChannelPipelineBase(), io, NetChannelBase.CLIENT_SIDE, NetChannelBase.SOCK_STREAM);
+        super(NetChannelBase.CLIENT_SIDE, new NetChannelPipelineBase(), io, NetConst.SOCK_STREAM);
         this._enableSubscribeEvent = false;
         if (io) {
             this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;

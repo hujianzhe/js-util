@@ -1,5 +1,30 @@
 const std_net = require('net');
 
+class NetConst {
+	static SOCK_STREAM = 1;
+	static SOCK_DGRAM = 2;
+
+	static string2socktype(s) {
+		switch (s) {
+			case 'SOCK_STREAM':
+				return NetConst.SOCK_STREAM;
+			case 'SOCK_DGRAM':
+				return NetConst.SOCK_DGRAM;
+		}
+		return 0;
+	}
+
+	static socktype2string(socktype) {
+		switch (socktype) {
+			case NetConst.SOCK_STREAM:
+				return 'SOCK_STREAM';
+			case NetConst.SOCK_DGRAM:
+				return 'SOCK_DGRAM';
+		}
+		return '';
+	}
+}
+
 class NetChannelPipelineBase {
 	constructor() {
 		this.fnReadBuffer = function (channel, buff, rinfo) {
@@ -20,30 +45,7 @@ class NetChannelBase {
 	static CONNECT_STATUS_DOING = 1;
 	static CONNECT_STATUS_DONE = 2;
 
-	static SOCK_STREAM = 1;
-	static SOCK_DGRAM = 2;
-
-	static string2socktype(s) {
-		switch (s) {
-			case 'SOCK_STREAM':
-				return NetChannelBase.SOCK_STREAM;
-			case 'SOCK_DGRAM':
-				return NetChannelBase.SOCK_DGRAM;
-		}
-		return 0;
-	}
-	
-	static socktype2string(socktype) {
-		switch (socktype) {
-			case NetChannelBase.SOCK_STREAM:
-				return 'SOCK_STREAM';
-			case NetChannelBase.SOCK_DGRAM:
-				return 'SOCK_DGRAM';
-		}
-		return '';
-	}
-
-	constructor(pipeline, io, side, socktype) {
+	constructor(side, pipeline, io, socktype) {
 		this._pipeline = pipeline;
 		this._io = io;
 		this._side = side;
@@ -163,8 +165,8 @@ class NetChannelBase {
 }
 
 class NetChannel extends NetChannelBase {
-	constructor(pipeline, io, side, socktype) {
-		super(pipeline, io, side, socktype);
+	constructor(side, pipeline, io, socktype) {
+		super(side, pipeline, io, socktype);
 		this._rbf = Buffer.alloc(0);
 		this._ready_fin = false;
 		this._waitSendBufferWhenConnecting = null;
@@ -172,7 +174,7 @@ class NetChannel extends NetChannelBase {
 		this._connectPromise = null;
 		if (this._io) {
 			this.initEvent();
-			if (this.side == NetChannel.SERVER_SIDE) {
+			if (this.side == NetChannelBase.SERVER_SIDE) {
 				this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
 			}
 			else if (this._io.connecting) {
@@ -187,9 +189,6 @@ class NetChannel extends NetChannelBase {
 				});
 			}
 		}
-		if (this.socktype == NetChannelBase.SOCK_DGRAM) {
-			this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
-		}
 	}
 
 	initEvent() {
@@ -198,13 +197,13 @@ class NetChannel extends NetChannelBase {
 		}
 		this._initedEvent = true;
 		let self = this;
-		if (NetChannelBase.SOCK_STREAM == this._socktype) {
+		if (this.socktype == NetConst.SOCK_STREAM) {
 			this._io.setNoDelay();
 			this._io.on('data', (data) => {
 				self.readBuffer(data, null);
 			});
 		}
-		else if (NetChannelBase.SOCK_DGRAM == this._socktype) {
+		else if (this.socktype == NetConst.SOCK_DGRAM) {
 			this._io.on('message', (data, rinfo) => {
 				self.readBuffer(data, rinfo);
 			});
@@ -222,10 +221,10 @@ class NetChannel extends NetChannelBase {
 		this._ready_fin = false;
 		this._waitSendBufferWhenConnecting = null;
 		if (this._io) {
-			if (this.socktype == NetChannelBase.SOCK_STREAM) {
+			if (this.socktype == NetConst.SOCK_STREAM) {
 				this._io.destroy();
 			}
-			else if (this.socktype == NetChannelBase.SOCK_DGRAM) {
+			else if (this.socktype == NetConst.SOCK_DGRAM) {
 				this._io.close();
 			}
 		}
@@ -277,10 +276,10 @@ class NetChannel extends NetChannelBase {
 			this._waitSendBufferWhenConnecting = newBuf;
 			return;
 		}
-		if (this.socktype == NetChannelBase.SOCK_STREAM) {
+		if (this.socktype == NetConst.SOCK_STREAM) {
 			this._io.write(buff);
 		}
-		else if (this.socktype == NetChannelBase.SOCK_DGRAM) {
+		else if (this.socktype == NetConst.SOCK_DGRAM) {
 			if (rinfo) {
 				this._io.send(buff, rinfo.port, rinfo.address);
 			}
@@ -291,7 +290,7 @@ class NetChannel extends NetChannelBase {
 	}
 
 	fin() {
-		if (this.socktype != NetChannelBase.SOCK_STREAM) {
+		if (this.socktype != NetConst.SOCK_STREAM) {
 			return;
 		}
 		if (this._waitSendBufferWhenConnecting) {
@@ -315,28 +314,39 @@ class NetChannel extends NetChannelBase {
 		}
 	}
 
-	tcpConnect(host, port) {
-		if (this.side != NetChannelBase.CLIENT_SIDE) {
-			return false;
-		}
-		if (this._socktype != NetChannelBase.SOCK_STREAM) {
-			return false;
-		}
-		if (NetChannelBase.CONNECT_STATUS_DONE == this._connectStatus) {
-			return true;
-		}
-		if (NetChannelBase.CONNECT_STATUS_NEW != this._connectStatus) {
-			return this._connectPromise;
-		}
-		let self = this;
-		return new Promise((resolve) => {
-			self._prepareConnect(resolve, false);
-			self._io = std_net.createConnection({ host: host, port: port }, () => {
-				self._afterConnect();
-				resolve(self._ready_fin);
+	connect(host, port) {
+		if (this.socktype == NetConst.SOCK_STREAM) {
+			if (this.side != NetChannelBase.CLIENT_SIDE) {
+				return false;
+			}
+			if (NetChannelBase.CONNECT_STATUS_DONE == this._connectStatus) {
+				return true;
+			}
+			if (NetChannelBase.CONNECT_STATUS_NEW != this._connectStatus) {
+				return this._connectPromise;
+			}
+			let self = this;
+			return new Promise((resolve) => {
+				self._prepareConnect(resolve, false);
+				self._io = std_net.createConnection({ host: host, port: port }, () => {
+					self._afterConnect();
+					resolve(self._ready_fin);
+				});
+				self.initEvent();
 			});
-			self.initEvent();
-		});
+		}
+		else if (this.socktype == NetConst.SOCK_DGRAM) {
+			try {
+				this._io.disconnect();
+			} catch (e) { void e; }
+			let self = this;
+			return new Promise((resolve) => {
+				self._io.connect(port, host, (err) => {
+					resolve(err ? false : true);
+				});
+			});
+		}
+		return false;
 	}
 }
 

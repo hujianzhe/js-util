@@ -25,7 +25,7 @@ class NetConst {
 	}
 }
 
-class NetChannelPipelineBase {
+class NetPipelineBase {
 	constructor() {
 		this.fnReadBuffer = function (channel, buff, rinfo) {
 			void channel, buff, rinfo;
@@ -351,7 +351,8 @@ class NetChannel extends NetChannelBase {
 }
 
 module.exports = {
-	NetChannelPipelineBase,
+	NetConst,
+	NetPipelineBase,
 	NetChannelBase,
 	NetChannel
 };

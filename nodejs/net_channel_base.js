@@ -309,8 +309,8 @@ class NetChannel extends NetChannelBase {
 			this._io.write(this._waitSendBufferWhenConnecting);
 			this._waitSendBufferWhenConnecting = null;
 		}
-		if (self._ready_fin) {
-			self._io.end();
+		if (this._ready_fin) {
+			this._io.end();
 		}
 	}
 

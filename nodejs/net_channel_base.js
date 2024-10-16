@@ -166,7 +166,7 @@ class NetChannelBase {
 }
 
 class NetChannel extends NetChannelBase {
-	NetChannel(pipeline, io, side, socktype) {
+	constructor(pipeline, io, side, socktype) {
 		super(pipeline, io, side, socktype);
 		this._rbf = Buffer.alloc(0);
 		this._ready_fin = false;

@@ -2,9 +2,9 @@ const net = require('net');
 
 class NetChannelPipelineBase {
 	constructor() {
-		this.fnReadBuffer = function (buff, rinfo) {
-			void buff, rinfo;
-			return null;
+		this.fnReadBuffer = function (channel, buff, rinfo) {
+			void channel, buff, rinfo;
+			return buff.length;
 		};
 		this.fnHandleClose = function (channel, err) {
 			void channel, err;
@@ -217,17 +217,17 @@ class NetChannel extends NetChannelBase {
 		this._lastRecvMsec = Date.now();
 		this._rbf = Buffer.concat([this._rbf, data]);
 		do {
-			let decodeObj;
+			let decode_length;
 			try {
-				decodeObj = this._pipeline.fnReadBuffer(this._rbf, rinfo);
-				if (!decodeObj) {
-					break;
-				}
-				if (decodeObj.totalLength === undefined || decodeObj.totalLength === null) {
+				decode_length = this._pipeline.fnReadBuffer(this, this._rbf, rinfo);
+				if (decode_length === undefined || decode_length === null) {
 					this.close(new Error("NetChannelBase::readBuffer miss totalLength field"));
 					return;
 				}
-				if (decodeObj.totalLength < 0) {
+				if (0 == decode_length) {
+					break;
+				}
+				if (decode_length < 0) {
 					this.close(new Error("NetChannelBase::readBuffer decode exception"));
 					return;
 				}
@@ -235,7 +235,7 @@ class NetChannel extends NetChannelBase {
 				this.close(new Error("NetChannelBase::readBuffer decode exception"));
 				return;
 			}
-			this._rbf = this._rbf.subarray(decodeObj.totalLength);
+			this._rbf = this._rbf.subarray(decode_length);
 		} while (this._rbf.length > 0);
 	}
 

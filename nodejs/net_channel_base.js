@@ -53,8 +53,8 @@ class NetChannelBase {
 
 		this._connectResolve = null;
 		this._connectStatus = NetChannelBase.CONNECT_STATUS_NEW;
-		this._connectTimeout = null;
-		this._heartbeatTimeout = null;
+		this._connectTimerId = null;
+		this._heartbeatTimerId = null;
 		this._heartbeatTimes = 0;
 		this._lastRecvMsec = 0;
 
@@ -72,17 +72,17 @@ class NetChannelBase {
 
 	close(err) {
 		this._io = null;
-		if (this._connectTimeout) {
-			clearTimeout(this._connectTimeout);
-			this._connectTimeout = null;
+		if (this._connectTimerId) {
+			clearTimeout(this._connectTimerId);
+			this._connectTimerId = null;
 		}
 		if (this._connectResolve) {
 			this._connectResolve();
 			this._connectResolve = null;
 		}
-		if (this._heartbeatTimeout) {
-			clearTimeout(this._heartbeatTimeout);
-			this._heartbeatTimeout = null;
+		if (this._heartbeatTimerId) {
+			clearTimeout(this._heartbeatTimerId);
+			this._heartbeatTimerId = null;
 		}
 		if (this._pipeline) {
 			this._pipeline.fnHandleClose(this, err);
@@ -93,7 +93,7 @@ class NetChannelBase {
 		this._connectStatus = NetChannelBase.CONNECT_STATUS_DOING;
 		this._connectResolve = resolve;
 		if (this.connectTimeoutMsec > 0) {
-			this._connectTimeout = setTimeout(() => {
+			this._connectTimerId = setTimeout(() => {
 				this._connectResolve = null;
 				this.close(new Error("NetChannel connect timeout"));
 				resolve(resolve_ret);
@@ -104,9 +104,9 @@ class NetChannelBase {
 	_afterConnect() {
 		this._connectResolve = null;
 		this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
-		if (this._connectTimeout) {
-			clearTimeout(this._connectTimeout);
-			this._connectTimeout = null;
+		if (this._connectTimerId) {
+			clearTimeout(this._connectTimerId);
+			this._connectTimerId = null;
 		}
 	}
 
@@ -118,22 +118,22 @@ class NetChannelBase {
 			return;
 		}
 		let self = this;
-		if (self._heartbeatTimeout) {
-			clearTimeout(self._heartbeatTimeout);
+		if (self._heartbeatTimerId) {
+			clearTimeout(self._heartbeatTimerId);
 		}
-		self._heartbeatTimeout = setTimeout(function fn() {
-			clearTimeout(self._heartbeatTimeout);
+		self._heartbeatTimerId = setTimeout(function fn() {
+			clearTimeout(self._heartbeatTimerId);
 			if (NetChannelBase.CONNECT_STATUS_DONE != self._connectStatus) {
-				self._heartbeatTimeout = setTimeout(fn, interval);
+				self._heartbeatTimerId = setTimeout(fn, interval);
 				return;
 			}
 			if (self._heartbeatTimes < maxTimes) {
 				fnHeartbeat(self);
 				++self._heartbeatTimes;
-				self._heartbeatTimeout = setTimeout(fn, interval);
+				self._heartbeatTimerId = setTimeout(fn, interval);
 				return;
 			}
-			self._heartbeatTimeout = null;
+			self._heartbeatTimerId = null;
 			self.close(new Error("NetChannelBase client hearbeat timeout"));
 		}, interval);
 	}
@@ -143,20 +143,20 @@ class NetChannelBase {
 			return null;
 		}
 		let self = this;
-		if (self._heartbeatTimeout) {
-			clearTimeout(self._heartbeatTimeout);
+		if (self._heartbeatTimerId) {
+			clearTimeout(self._heartbeatTimerId);
 		}
-		self._heartbeatTimeout = setTimeout(function fn() {
-			clearTimeout(self._heartbeatTimeout);
-			let elapse = Date.now() - this._lastRecvMsec;
+		self._heartbeatTimerId = setTimeout(function fn() {
+			clearTimeout(self._heartbeatTimerId);
+			let elapse = Date.now() - self._lastRecvMsec;
 			if (elapse < 0) {
 				elapse = 0;
 			}
 			if (elapse <= interval) {
-				self._heartbeatTimeout = setTimeout(fn, interval - elapse);
+				self._heartbeatTimerId = setTimeout(fn, interval - elapse);
 				return;
 			}
-			self._heartbeatTimeout = null;
+			self._heartbeatTimerId = null;
 			self.close(new Error("NetChannelBase server hearbeat timeout"));
 		}, interval);
 	}

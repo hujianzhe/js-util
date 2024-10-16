@@ -1,4 +1,4 @@
-const net = require('net');
+const std_net = require('net');
 
 class NetChannelPipelineBase {
 	constructor() {
@@ -169,11 +169,26 @@ class NetChannel extends NetChannelBase {
 		this._ready_fin = false;
 		this._waitSendBufferWhenConnecting = null;
 		this._initedEvent = false;
+		this._connectPromise = null;
 		if (this._io) {
 			this.initEvent();
 			if (this.side == NetChannel.SERVER_SIDE) {
 				this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
 			}
+			else if (this._io.connecting) {
+				this._connectStatus = NetChannelBase.CONNECT_STATUS_DOING;
+				let self = this;
+				self._connectPromise = new Promise((resolve) => {
+					self._prepareConnect(resolve, false);
+					self._io.on('connect', () => {
+						self._afterConnect();
+						resolve(self._ready_fin);
+					});
+				});
+			}
+		}
+		if (this.socktype == NetChannelBase.SOCK_DGRAM) {
+			this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
 		}
 	}
 
@@ -207,7 +222,12 @@ class NetChannel extends NetChannelBase {
 		this._ready_fin = false;
 		this._waitSendBufferWhenConnecting = null;
 		if (this._io) {
-			this._io.destroy();
+			if (this.socktype == NetChannelBase.SOCK_STREAM) {
+				this._io.destroy();
+			}
+			else if (this.socktype == NetChannelBase.SOCK_DGRAM) {
+				this._io.close();
+			}
 		}
 		super.close(err);
 	}
@@ -239,7 +259,7 @@ class NetChannel extends NetChannelBase {
 		} while (this._rbf.length > 0);
 	}
 
-	send(buff) {
+	send(buff, rinfo) {
 		if (!this._io) {
 			return;
 		}
@@ -257,16 +277,41 @@ class NetChannel extends NetChannelBase {
 			this._waitSendBufferWhenConnecting = newBuf;
 			return;
 		}
-		this._io.write(buff);
+		if (this.socktype == NetChannelBase.SOCK_STREAM) {
+			this._io.write(buff);
+		}
+		else if (this.socktype == NetChannelBase.SOCK_DGRAM) {
+			if (rinfo) {
+				this._io.send(buff, rinfo.port, rinfo.address);
+			}
+			else {
+				this._io.send(buff);
+			}
+		}
 	}
 
 	fin() {
+		if (this.socktype != NetChannelBase.SOCK_STREAM) {
+			return;
+		}
 		if (this._waitSendBufferWhenConnecting) {
 			this._ready_fin = true;
 			return;
 		}
 		if (this._io) {
 			this._io.end();
+		}
+	}
+
+	_afterConnect() {
+		super._afterConnect();
+		this._connectPromise = null;
+		if (this._waitSendBufferWhenConnecting) {
+			this._io.write(this._waitSendBufferWhenConnecting);
+			this._waitSendBufferWhenConnecting = null;
+		}
+		if (self._ready_fin) {
+			self._io.end();
 		}
 	}
 
@@ -281,24 +326,14 @@ class NetChannel extends NetChannelBase {
 			return true;
 		}
 		if (NetChannelBase.CONNECT_STATUS_NEW != this._connectStatus) {
-			return false;
+			return this._connectPromise;
 		}
 		let self = this;
 		return new Promise((resolve) => {
 			self._prepareConnect(resolve, false);
-			self._io = net.createConnection({ host: host, port: port }, () => {
+			self._io = std_net.createConnection({ host: host, port: port }, () => {
 				self._afterConnect();
-				if (this._waitSendBufferWhenConnecting) {
-					this._io.write(this._waitSendBufferWhenConnecting);
-					this._waitSendBufferWhenConnecting = null;
-				}
-				if (self._ready_fin) {
-					self._io.end();
-					resolve(false);
-				}
-				else {
-					resolve(true);
-				}
+				resolve(self._ready_fin);
 			});
 			self.initEvent();
 		});

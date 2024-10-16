@@ -152,7 +152,7 @@ class NetChannelBase {
 			if (elapse < 0) {
 				elapse = 0;
 			}
-			if (elapse <= interval) {
+			if (elapse < interval) {
 				self._heartbeatTimerId = setTimeout(fn, interval - elapse);
 				return;
 			}

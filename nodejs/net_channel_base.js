@@ -2,12 +2,9 @@ const net = require('net');
 
 class NetChannelPipelineBase {
 	constructor() {
-		this.fnDecodeBuffer = function (buff, rinfo) {
+		this.fnReadBuffer = function (buff, rinfo) {
 			void buff, rinfo;
 			return null;
-		};
-		this.fnHandleDecodeObj = function (channel, decodeObj) {
-			void channel; void decodeObj;
 		};
 		this.fnHandleClose = function (channel, err) {
 			void channel, err;
@@ -222,7 +219,7 @@ class NetChannel extends NetChannelBase {
 		do {
 			let decodeObj;
 			try {
-				decodeObj = this._pipeline.fnDecodeBuffer(this._rbf, rinfo);
+				decodeObj = this._pipeline.fnReadBuffer(this._rbf, rinfo);
 				if (!decodeObj) {
 					break;
 				}
@@ -239,10 +236,6 @@ class NetChannel extends NetChannelBase {
 				return;
 			}
 			this._rbf = this._rbf.subarray(decodeObj.totalLength);
-			try {
-				this._pipeline.fnHandleDecodeObj(this, decodeObj);
-			}
-			catch (e) { void e; }
 		} while (this._rbf.length > 0);
 	}
 

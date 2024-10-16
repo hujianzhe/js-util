@@ -121,7 +121,7 @@ class NetChannelBase {
 		if (self._heartbeatTimeout) {
 			clearTimeout(self._heartbeatTimeout);
 		}
-		const fn = function () {
+		self._heartbeatTimeout = setTimeout(function fn() {
 			clearTimeout(self._heartbeatTimeout);
 			if (NetChannelBase.CONNECT_STATUS_DONE != self._connectStatus) {
 				self._heartbeatTimeout = setTimeout(fn, interval);
@@ -135,8 +135,7 @@ class NetChannelBase {
 			}
 			self._heartbeatTimeout = null;
 			self.close(new Error("NetChannelBase client hearbeat timeout"));
-		};
-		self._heartbeatTimeout = setTimeout(fn, interval);
+		}, interval);
 	}
 
 	setServerSideHeartbeat(interval) {
@@ -147,7 +146,7 @@ class NetChannelBase {
 		if (self._heartbeatTimeout) {
 			clearTimeout(self._heartbeatTimeout);
 		}
-		const fn = () => {
+		self._heartbeatTimeout = setTimeout(function fn() {
 			clearTimeout(self._heartbeatTimeout);
 			let elapse = Date.now() - this._lastRecvMsec;
 			if (elapse < 0) {
@@ -159,8 +158,7 @@ class NetChannelBase {
 			}
 			self._heartbeatTimeout = null;
 			self.close(new Error("NetChannelBase server hearbeat timeout"));
-		}
-		self._heartbeatTimeout = setTimeout(fn, interval);
+		}, interval);
 	}
 }
 

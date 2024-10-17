@@ -183,12 +183,14 @@ class NetChannel extends NetChannelBase {
 					self._prepareConnect(resolve, false);
 					self._io.on('connect', () => {
 						self._afterConnect();
-						resolve(self._ready_fin);
+						resolve(!self._ready_fin);
 					});
 				});
 			}
 		}
-		this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
+		if (this.socktype != NetConst.SOCK_STREAM || this.side != NetChannelBase.CLIENT_SIDE) {
+			this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
+		}
 	}
 
 	initEvent() {
@@ -332,7 +334,7 @@ class NetChannel extends NetChannelBase {
 				self._prepareConnect(resolve, false);
 				self._io = std_net.createConnection({ host: host, port: port }, () => {
 					self._afterConnect();
-					resolve(self._ready_fin);
+					resolve(!self._ready_fin);
 				});
 				self.initEvent();
 			});

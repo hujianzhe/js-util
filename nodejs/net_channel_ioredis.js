@@ -2,19 +2,9 @@ const { NetConst, NetChannelBase, NetPipelineBase } = require('./net_channel_bas
 const Redis = require("ioredis");
 
 class NetIoRedisClientChannel extends NetChannelBase {
-    constructor(io) {
-        super(NetChannelBase.CLIENT_SIDE, new NetPipelineBase(), io, NetConst.SOCK_STREAM);
+    constructor() {
+        super(NetChannelBase.CLIENT_SIDE, new NetPipelineBase(), null, NetConst.SOCK_STREAM);
         this._enableSubscribeEvent = false;
-        if (io) {
-            this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
-            let self = this;
-            this._io.on('error', (err) => {
-                self.close(err);
-            });
-            this._io.on('close', () => {
-                self.close();
-            });
-        }
         this._pipeline.fnHeartbeat = (channel) => {
             channel._heartbeatTimes = 0;
             channel._io.ping();

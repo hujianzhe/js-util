@@ -53,13 +53,6 @@ class NetIoRedisClientChannel extends NetChannelBase {
         return this._connectPromise;
     }
 
-    setHeartbeat(interval, maxTimes) {
-        super.setClientSideHeartbeat((channel) => {
-            channel._heartbeatTimes = 0;
-            channel._io.ping();
-        }, interval, maxTimes);
-    }
-
     enableSubscribe(fnOnSubscribe) {
         if (this._enableSubscribeEvent) {
             return;

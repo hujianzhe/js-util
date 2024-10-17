@@ -61,8 +61,10 @@ class NetChannelBase {
 		this._heartbeatTimerId = null;
 		this._heartbeatTimes = 0;
 		this._lastRecvMsec = 0;
+		this._alreadyExecClosed = false;
 
 		// public
+		this.error = null;
 		this.heartbeatSender = (side == NetChannelBase.CLIENT_SIDE);
 		this.heartbeatTimeoutMsec = 0;
 		this.heartbeatMaxTimes = 0;
@@ -84,6 +86,7 @@ class NetChannelBase {
 
 	close(err) {
 		this._io = null;
+		this.error = err;
 		if (this._connectTimerId) {
 			clearTimeout(this._connectTimerId);
 			this._connectTimerId = null;
@@ -97,7 +100,8 @@ class NetChannelBase {
 			clearTimeout(this._heartbeatTimerId);
 			this._heartbeatTimerId = null;
 		}
-		if (this._pipeline) {
+		if (!this._alreadyExecClosed) {
+			this._alreadyExecClosed = true;
 			this._pipeline.fnHandleClose(this, err);
 		}
 	}

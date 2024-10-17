@@ -34,6 +34,9 @@ class NetPipelineBase {
 		this.fnHandleClose = function (channel, err) {
 			void channel, err;
 		};
+		this.fnHeartbeat = function (channel) {
+			void channel;
+		}
 	}
 }
 
@@ -51,6 +54,7 @@ class NetChannelBase {
 		this._side = side;
 		this._socktype = socktype;
 
+		this._connectPromise = null;
 		this._connectResolve = null;
 		this._connectStatus = NetChannelBase.CONNECT_STATUS_NEW;
 		this._connectTimerId = null;
@@ -58,6 +62,10 @@ class NetChannelBase {
 		this._heartbeatTimes = 0;
 		this._lastRecvMsec = 0;
 
+		// public
+		this.heartbeatSender = (side == NetChannelBase.CLIENT_SIDE);
+		this.heartbeatTimeoutMsec = 0;
+		this.heartbeatMaxTimes = 0;
 		this.connectTimeoutMsec = 5000;
 		this.session = null;
 	}
@@ -76,6 +84,7 @@ class NetChannelBase {
 			clearTimeout(this._connectTimerId);
 			this._connectTimerId = null;
 		}
+		this._connectPromise = null;
 		if (this._connectResolve) {
 			this._connectResolve();
 			this._connectResolve = null;
@@ -102,6 +111,7 @@ class NetChannelBase {
 	}
 
 	_afterConnect() {
+		this._connectPromise = null;
 		this._connectResolve = null;
 		this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
 		if (this._connectTimerId) {
@@ -110,55 +120,39 @@ class NetChannelBase {
 		}
 	}
 
-	setClientSideHeartbeat(fnHeartbeat, interval, maxTimes) {
-		if (this.side != NetChannelBase.CLIENT_SIDE) {
+	startHeartbeat() {
+		if (this.heartbeatTimeoutMsec <= 0) {
 			return;
 		}
-		if (NetChannelBase.CONNECT_STATUS_NEW == this._connectStatus) {
+		if (NetChannelBase.CONNECT_STATUS_DONE != this._connectStatus) {
 			return;
 		}
-		let self = this;
-		if (self._heartbeatTimerId) {
-			clearTimeout(self._heartbeatTimerId);
-		}
-		self._heartbeatTimerId = setTimeout(function fn() {
-			clearTimeout(self._heartbeatTimerId);
-			if (NetChannelBase.CONNECT_STATUS_DONE != self._connectStatus) {
-				self._heartbeatTimerId = setTimeout(fn, interval);
-				return;
-			}
-			if (self._heartbeatTimes < maxTimes) {
-				fnHeartbeat(self);
-				++self._heartbeatTimes;
-				self._heartbeatTimerId = setTimeout(fn, interval);
-				return;
-			}
-			self._heartbeatTimerId = null;
-			self.close(new Error("NetChannelBase client hearbeat timeout"));
-		}, interval);
-	}
-
-	setServerSideHeartbeat(interval) {
-		if (this.side != NetChannelBase.SERVER_SIDE) {
-			return null;
+		if (this._heartbeatTimerId) {
+			clearTimeout(this._heartbeatTimerId);
+			this._heartbeatTimerId = null;
 		}
 		let self = this;
-		if (self._heartbeatTimerId) {
-			clearTimeout(self._heartbeatTimerId);
-		}
-		self._heartbeatTimerId = setTimeout(function fn() {
-			clearTimeout(self._heartbeatTimerId);
-			let elapse = Date.now() - self._lastRecvMsec;
-			if (elapse < 0) {
-				elapse = 0;
+		this._heartbeatTimerId = setTimeout(function fn() {
+			if (!self.heartbeatSender) {
+				const tmMsec = Date.now();
+				const endMsec = self._lastRecvMsec + self.heartbeatTimeoutMsec;
+				if (tmMsec < endMsec) {
+					clearTimeout(self._heartbeatTimerId);
+					self._heartbeatTimerId = setTimeout(fn, endMsec - tmMsec);
+					return;
+				}
 			}
-			if (elapse < interval) {
-				self._heartbeatTimerId = setTimeout(fn, interval - elapse);
+			if (self._heartbeatTimes >= self.heartbeatMaxTimes) {
+				self.close(new Error("NetChannelBase client hearbeat timeout"));
 				return;
 			}
-			self._heartbeatTimerId = null;
-			self.close(new Error("NetChannelBase server hearbeat timeout"));
-		}, interval);
+			clearTimeout(self._heartbeatTimerId);
+			++self._heartbeatTimes;
+			if (self.heartbeatSender) {
+				self._pipeline.fnHeartbeat(self);
+			}
+			self._heartbeatTimerId = setTimeout(fn, self.heartbeatTimeoutMsec);
+		}, this.heartbeatTimeoutMsec);
 	}
 }
 
@@ -169,13 +163,12 @@ class NetChannel extends NetChannelBase {
 		this._ready_fin = false;
 		this._waitSendBufferWhenConnecting = null;
 		this._initedEvent = false;
-		this._connectPromise = null;
+		if (!this._io && (this.socktype != NetConst.SOCK_STREAM || this.side != NetChannelBase.CLIENT_SIDE)) {
+			throw new Error("NetChannel constructor must have valid param: io");
+		}
 		if (this._io) {
 			this.initEvent();
-			if (this.side == NetChannelBase.SERVER_SIDE) {
-				this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
-			}
-			else if (this._io.connecting) {
+			if (this.socktype == NetConst.SOCK_STREAM && this._io.connecting) {
 				this._connectStatus = NetChannelBase.CONNECT_STATUS_DOING;
 				let self = this;
 				self._connectPromise = new Promise((resolve) => {
@@ -187,6 +180,7 @@ class NetChannel extends NetChannelBase {
 				});
 			}
 		}
+		this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
 	}
 
 	initEvent() {
@@ -302,13 +296,15 @@ class NetChannel extends NetChannelBase {
 
 	_afterConnect() {
 		super._afterConnect();
-		this._connectPromise = null;
 		if (this._waitSendBufferWhenConnecting) {
 			this._io.write(this._waitSendBufferWhenConnecting);
 			this._waitSendBufferWhenConnecting = null;
 		}
 		if (this._ready_fin) {
 			this._io.end();
+		}
+		else {
+			this.startHeartbeat();
 		}
 	}
 
@@ -324,7 +320,7 @@ class NetChannel extends NetChannelBase {
 				return this._connectPromise;
 			}
 			let self = this;
-			return new Promise((resolve) => {
+			this._connectPromise = new Promise((resolve) => {
 				self._prepareConnect(resolve, false);
 				self._io = std_net.createConnection({ host: host, port: port }, () => {
 					self._afterConnect();
@@ -332,6 +328,7 @@ class NetChannel extends NetChannelBase {
 				});
 				self.initEvent();
 			});
+			return this._connectPromise;
 		}
 		else if (this.socktype == NetConst.SOCK_DGRAM) {
 			try {

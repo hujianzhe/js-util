@@ -15,6 +15,10 @@ class NetIoRedisClientChannel extends NetChannelBase {
                 self.close();
             });
         }
+        this._pipeline.fnHeartbeat = (channel) => {
+            channel._heartbeatTimes = 0;
+            channel._io.ping();
+        };
     }
 
     close(err) {
@@ -29,10 +33,10 @@ class NetIoRedisClientChannel extends NetChannelBase {
             return true;
         }
         if (NetChannelBase.CONNECT_STATUS_NEW != this._connectStatus) {
-            return false;
+            return this._connectPromise;
         }
         let self = this;
-        return new Promise((resolve) => {
+        this._connectPromise = new Promise((resolve) => {
             self._prepareConnect(resolve, false);
             self._io = new Redis(args);
             self._io.on('ready', () => {
@@ -46,6 +50,7 @@ class NetIoRedisClientChannel extends NetChannelBase {
                 self.close();
             });
         });
+        return this._connectPromise;
     }
 
     setHeartbeat(interval, maxTimes) {

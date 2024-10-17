@@ -109,8 +109,8 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 					ws_obj.close();
 					return;
 				}
-				ws_obj.onheartbeat();
 				ws_obj.heartbeat_do_times++;
+				ws_obj.onheartbeat();
 				ws_obj.heartbeat_timerid = setTimeout(proc, interval_sec * 1000);
 			}, interval_sec * 1000);
 		}

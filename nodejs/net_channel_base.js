@@ -78,6 +78,10 @@ class NetChannelBase {
 		return this._socktype;
 	}
 
+	get io() {
+		return this._io;
+	}
+
 	close(err) {
 		this._io = null;
 		if (this._connectTimerId) {

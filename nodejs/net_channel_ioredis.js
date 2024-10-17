@@ -34,7 +34,9 @@ class NetIoRedisClientChannel extends NetChannelBase {
                 resolve(true);
             });
             self._io.on('error', (err) => {
-                self.close(err);
+                if (self._connectStatus != NetChannelBase.CONNECT_STATUS_DONE) {
+                    self.close(err);
+                }
             });
             self._io.on('close', () => {
                 self.close();

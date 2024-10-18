@@ -1,15 +1,13 @@
-const { NetConst, NetChannelBase } = require('./net_channel_base.js');
+const { NetConst, NetChannelBase, NetPipelineBase } = require('./net_channel_base.js');
 const Redis = require("ioredis");
 
 class NetIoRedisClientChannel extends NetChannelBase {
-    constructor(pipeline) {
-        super(NetChannelBase.CLIENT_SIDE, pipeline, null, NetConst.SOCK_STREAM);
+    static _pipeline = null;
+
+    constructor() {
+        super(NetChannelBase.CLIENT_SIDE, NetIoRedisClientChannel._pipeline, null, NetConst.SOCK_STREAM);
         this.managedClose = true;
         this._enableSubscribeEvent = false;
-        this._pipeline.fnHeartbeat = (channel) => {
-            channel._heartbeatTimes = 0;
-            channel._io.ping();
-        };
     }
 
     close(err) {
@@ -32,6 +30,7 @@ class NetIoRedisClientChannel extends NetChannelBase {
             self._io = new Redis(args);
             self._io.on('ready', () => {
                 self._afterConnect();
+                self.startHeartbeat();
                 resolve(true);
             });
             self._io.on('error', (err) => {
@@ -55,6 +54,14 @@ class NetIoRedisClientChannel extends NetChannelBase {
             fnOnSubscribe(bufferSubscribeKey.toString(), data);
         });
     }
+}
+
+if (!NetIoRedisClientChannel._pipeline) {
+    NetIoRedisClientChannel._pipeline = new NetPipelineBase();
+    NetIoRedisClientChannel._pipeline.fnHeartbeat = (channel) => {
+        channel._heartbeatTimes = 0;
+        channel._io.ping();
+    };
 }
 
 module.exports = {

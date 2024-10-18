@@ -7,7 +7,7 @@ class NetIoRedisClientChannel extends NetChannelBase {
     constructor() {
         super(NetChannelBase.CLIENT_SIDE, NetIoRedisClientChannel._pipeline, null, NetConst.SOCK_STREAM);
         this.managedClose = true;
-        this._enableSubscribeEvent = false;
+        this.fnOnSubscribe = null;
     }
 
     close(err) {
@@ -41,18 +41,14 @@ class NetIoRedisClientChannel extends NetChannelBase {
             self._io.on('close', () => {
                 self.close();
             });
+            const fnOnSubscribe = self.fnOnSubscribe;
+            if (fnOnSubscribe) {
+                self._io.on('messageBuffer', (bufferSubscribeKey, data) => {
+                    fnOnSubscribe(bufferSubscribeKey.toString(), data);
+                });
+            }
         });
         return this._connectPromise;
-    }
-
-    enableSubscribe(fnOnSubscribe) {
-        if (this._enableSubscribeEvent) {
-            return;
-        }
-        this._enableSubscribeEvent = true;
-        this._io.on('messageBuffer', (bufferSubscribeKey, data) => {
-            fnOnSubscribe(bufferSubscribeKey.toString(), data);
-        });
     }
 }
 

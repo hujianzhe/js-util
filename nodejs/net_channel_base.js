@@ -103,7 +103,9 @@ class NetChannelBase {
 		}
 		if (!this._alreadyExecClosed) {
 			this._alreadyExecClosed = true;
-			this._pipeline.fnHandleClose(this, err);
+			if (this._pipeline) {
+				this._pipeline.fnHandleClose(this, err);
+			}
 		}
 	}
 
@@ -187,6 +189,7 @@ class NetChannelTcpListener extends NetChannelBase {
 		this._listenPromise = new Promise((resolve) => {
 			self._listenResolve = resolve;
 			self._io.on('error', (err) => {
+				self._listenPromise = null;
 				self._listenResolve = null;
 				self.close(err);
 				resolve(false);

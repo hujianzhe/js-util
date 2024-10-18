@@ -4,6 +4,7 @@ const Redis = require("ioredis");
 class NetIoRedisClientChannel extends NetChannelBase {
     constructor(pipeline) {
         super(NetChannelBase.CLIENT_SIDE, pipeline, null, NetConst.SOCK_STREAM);
+        this.managedClose = true;
         this._enableSubscribeEvent = false;
         this._pipeline.fnHeartbeat = (channel) => {
             channel._heartbeatTimes = 0;
@@ -34,7 +35,9 @@ class NetIoRedisClientChannel extends NetChannelBase {
                 resolve(true);
             });
             self._io.on('error', (err) => {
-                self.close(err);
+                if (self.managedClose) {
+                    self.close(err);
+                }
             });
             self._io.on('close', () => {
                 self.close();

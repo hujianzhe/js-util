@@ -168,8 +168,8 @@ class NetChannelBase {
 }
 
 class NetChannelTcpListener extends NetChannelBase {
-	constructor(ip, port, pipeline) {
-		super(NetChannelBase.LISTEN_SIDE, pipeline, null, NetConst.SOCK_STREAM);
+	constructor(on_accept, ip, port) {
+		super(NetChannelBase.LISTEN_SIDE, null, null, NetConst.SOCK_STREAM);
 		this._onAccept = on_accept;
 		this.ip = ip;
 		this.port = port;
@@ -177,14 +177,14 @@ class NetChannelTcpListener extends NetChannelBase {
 		this._listenResolve = null;
 	}
 
-	listen(on_accept) {
+	listen() {
 		if (this._io) {
 			if (this._listenPromise) {
 				return this._listenPromise;
 			}
 			return true;
 		}
-		this._io = std_net.createServer(on_accept);
+		this._io = std_net.createServer(this._onAccept);
 		let self = this;
 		this._listenPromise = new Promise((resolve) => {
 			self._listenResolve = resolve;

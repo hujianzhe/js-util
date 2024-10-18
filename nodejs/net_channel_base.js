@@ -43,6 +43,7 @@ class NetPipelineBase {
 class NetChannelBase {
 	static CLIENT_SIDE = 1;
 	static SERVER_SIDE = 2;
+	static LISTEN_SIDE = 3;
 
 	static CONNECT_STATUS_NEW = 0;
 	static CONNECT_STATUS_DOING = 1;
@@ -164,8 +165,60 @@ class NetChannelBase {
 	}
 }
 
+class NetChannelTcpListener extends NetChannelBase {
+	constructor(ip, port, pipeline) {
+		super(NetChannelBase.LISTEN_SIDE, pipeline, null, NetConst.SOCK_STREAM);
+		this._onAccept = on_accept;
+		this.ip = ip;
+		this.port = port;
+		this._listenPromise = null;
+		this._listenResolve = null;
+	}
+
+	listen(on_accept) {
+		if (this._io) {
+			if (this._listenPromise) {
+				return this._listenPromise;
+			}
+			return true;
+		}
+		this._io = std_net.createServer(on_accept);
+		let self = this;
+		this._listenPromise = new Promise((resolve) => {
+			self._listenResolve = resolve;
+			self._io.on('error', (err) => {
+				self._listenResolve = null;
+				self.close(err);
+				resolve(false);
+			});
+			self._io.on('listening', () => {
+				self._listenPromise = null;
+				self._listenResolve = null;
+				resolve(true);
+			});
+			self._io.listen(self.port, self.host);
+		});
+		return this._listenPromise;
+	}
+
+	close(err) {
+		if (this._io) {
+			this._io.close();
+		}
+		if (this._listenResolve) {
+			this._listenResolve();
+			this._listenResolve = null;
+		}
+		this._listenPromise = null;
+		super.close(err);
+	}
+}
+
 class NetChannel extends NetChannelBase {
 	constructor(side, pipeline, io, socktype) {
+		if (side == NetChannelBase.LISTEN_SIDE) {
+			throw new Error("NetChannel constructor not support LISTEN_SIDE");
+		}
 		super(side, pipeline, io, socktype);
 		this._rbf = Buffer.alloc(0);
 		this._ready_fin = false;
@@ -267,18 +320,18 @@ class NetChannel extends NetChannelBase {
 		if (typeof buff === 'string') {
 			buff = Buffer.from(buff);
 		}
-		if (NetChannelBase.CONNECT_STATUS_DOING == this._connectStatus) {
-			let newBuf;
-			if (this._waitSendBufferWhenConnecting) {
-				newBuf = Buffer.concat([this._waitSendBufferWhenConnecting, buff]);
-			}
-			else {
-				newBuf = Buffer.concat([buff]);
-			}
-			this._waitSendBufferWhenConnecting = newBuf;
-			return;
-		}
 		if (this.socktype == NetConst.SOCK_STREAM) {
+			if (NetChannelBase.CONNECT_STATUS_DOING == this._connectStatus) {
+				let newBuf;
+				if (this._waitSendBufferWhenConnecting) {
+					newBuf = Buffer.concat([this._waitSendBufferWhenConnecting, buff]);
+				}
+				else {
+					newBuf = Buffer.concat([buff]);
+				}
+				this._waitSendBufferWhenConnecting = newBuf;
+				return;
+			}
 			this._io.write(buff);
 		}
 		else if (this.socktype == NetConst.SOCK_DGRAM) {
@@ -359,5 +412,6 @@ module.exports = {
 	NetConst,
 	NetPipelineBase,
 	NetChannelBase,
+	NetChannelTcpListener,
 	NetChannel
 };

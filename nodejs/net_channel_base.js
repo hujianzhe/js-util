@@ -171,10 +171,18 @@ class NetChannelTcpListener extends NetChannelBase {
 	constructor(on_accept, ip, port) {
 		super(NetChannelBase.LISTEN_SIDE, null, null, NetConst.SOCK_STREAM);
 		this._onAccept = on_accept;
-		this.ip = ip;
-		this.port = port;
+		this._ip = ip;
+		this._port = port;
 		this._listenPromise = null;
 		this._listenResolve = null;
+	}
+
+	get ip() {
+		return this._ip;
+	}
+
+	get port() {
+		return this._port;
 	}
 
 	listen() {
@@ -199,7 +207,7 @@ class NetChannelTcpListener extends NetChannelBase {
 				self._listenResolve = null;
 				resolve(true);
 			});
-			self._io.listen(self.port, self.host);
+			self._io.listen(self._port, self._ip);
 		});
 		return this._listenPromise;
 	}

@@ -15,7 +15,7 @@ class DatabaseClientPipeline {
         this.fnWriteLog = (strContent) => { void strContent; };
     }
 
-    static checkParam(param, rootErr = '') {
+    static findInvalidExecuteParam(param, rootErr = '') {
         if (Array.isArray(param)) {
             for (let i = 0; i < param.length; ++i) {
                 const strErr = DatabaseClientPipeline.findInvalidExecuteParam(param[i], rootErr + `[${i}]`);
@@ -47,7 +47,7 @@ class DatabaseClientPipeline {
         return "";
     }
 
-    static checkParams(params, rootErr = '') {
+    static findInvalidExecuteParams(params, rootErr = '') {
         for (let i = 0; i < params.length; ++i) {
             const strErr = DatabaseClientPipeline.findInvalidExecuteParam(params[i], rootErr + `[${i}]`);
             if (strErr) {

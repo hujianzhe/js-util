@@ -44,7 +44,7 @@ class NetIoRedisClientChannel extends NetChannelBase {
             const fnOnSubscribe = self.fnOnSubscribe;
             if (fnOnSubscribe) {
                 self._io.on('messageBuffer', (bufferSubscribeKey, data) => {
-                    fnOnSubscribe(bufferSubscribeKey.toString(), data);
+                    fnOnSubscribe(self, bufferSubscribeKey.toString(), data);
                 });
             }
         });

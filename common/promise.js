@@ -3,11 +3,21 @@ if (typeof js_util === 'undefined') {
 }
 js_util.Common = js_util.Common || {};
 
-if (!js_util.Common.PromiseTimeoutResult) {
-    class PromiseTimeoutResult {
-        constructor() {}
-    };
-    js_util.Common.PromiseTimeoutResult = new PromiseTimeoutResult();
+if (!js_util.Common.resolve_timeout) {
+    js_util.Common.resolve_timeout = {};
+}
+if (!js_util.Common.resolve_cancel) {
+    js_util.Common.resolve_cancel = {};
+}
+if (!js_util.Common.resolve_error) {
+    js_util.Common.resolve_error = {};
+}
+if (!js_util.Common.exception_resolves) {
+    js_util.Common.exception_resolves = [
+        js_util.Common.resolve_timeout,
+        js_util.Common.resolve_cancel,
+        js_util.Common.resolve_error
+    ];
 }
 
 js_util.Common.new_promise = function () {
@@ -51,7 +61,7 @@ js_util.Common.promise_timeout = function(promise_arg, timeout_msec) {
             timer_id = setTimeout(() => {
                 clearTimeout(timer_id);
                 timer_id = null;
-                resolve(js_util.Common.PromiseTimeoutResult);
+                resolve(js_util.Common.resolve_timeout);
             }, timeout_msec);
         }
         try {

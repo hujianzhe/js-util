@@ -122,3 +122,41 @@ js_util.Common.ResolveSet = class ResolveSet {
         resolve(ret_data);
     }
 };
+
+js_util.Common.ResolveWait = class ResolveWait {
+    constructor(fn_wait_condition, max_no_wait_times) {
+        this._resolve = null;
+        this._no_wait_times = 0;
+        this._max_no_wait_times = max_no_wait_times || 1;
+        this._fn_wait_condition = fn_wait_condition;
+    }
+
+    wait() {
+        if (!this._fn_wait_condition()) {
+            if (this._no_wait_times >= this._max_no_wait_times) {
+                this._no_wait_times = 0;
+                return new Promise((resolve) => {
+                    setTimeout(resolve, 0);
+                });
+            }
+            this._no_wait_times++;
+            return;
+        }
+        this._no_wait_times = 0;
+        const self = this;
+        return new Promise((resolve) => {
+            self._resolve = resolve;
+        });
+    }
+
+    wake() {
+        if (!this._resolve) {
+            return;
+        }
+        if (this._fn_wait_condition()) {
+            return;
+        }
+        this._resolve();
+        this._resolve = null;
+    }
+};

@@ -4,9 +4,10 @@ if (typeof js_util === 'undefined') {
 js_util.Common = js_util.Common || {};
 
 js_util.Common.ListNode = class {
-    constructor() {
+    constructor(value) {
         this.prev = null;
         this.next = null;
+        this.value = value;
     }
 };
 
@@ -17,7 +18,14 @@ js_util.Common.List = class List {
         this.length = 0;
     }
 
-    insert_back(node, new_node) {
+    insert_back(node, v) {
+        let new_node;
+        if (v instanceof js_util.Common.ListNode) {
+            new_node = v;
+        }
+        else {
+            new_node = new js_util.Common.ListNode(v);
+        }
         if (null === this.tail) {
             this.head = this.tail = new_node;
             new_node.prev = new_node.next = null;
@@ -37,11 +45,18 @@ js_util.Common.List = class List {
         return this;
     }
 
-    push_back(node) {
-        return this.insert_back(this.tail, node);
+    push_back(v) {
+        return this.insert_back(this.tail, v);
     }
 
-    insert_front(node, new_node) {
+    insert_front(node, v) {
+        let new_node;
+        if (v instanceof js_util.Common.ListNode) {
+            new_node = v;
+        }
+        else {
+            new_node = new js_util.Common.ListNode(v);
+        }
         if (null === this.head) {
             this.head = this.tail = new_node;
             new_node.prev = new_node.next = null;
@@ -61,13 +76,16 @@ js_util.Common.List = class List {
         return this;
     }
 
-    push_front(node) {
-        return this.insert_front(this.head, node);
+    push_front(v) {
+        return this.insert_front(this.head, v);
     };
 
     erase(node) {
         if (!node) {
             return this;
+        }
+        if (!(node instanceof js_util.Common.ListNode)) {
+            return;
         }
         if (node.prev) {
             node.prev.next = node.next;

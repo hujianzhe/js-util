@@ -1,69 +1,9 @@
-class DatabaseClientPipeline {
-    constructor() {
-        this.fnGetHandle = async () => {
-            throw new Error("DatabaseClientPipeline must implement interface fnGetHandle");
-        };
-        this.fnExecute = async (strSQL, params) => {
-            void strSQL, params;
-            throw new Error("DatabaseClientPipeline must implement interface fnExecute");
-        };
-        this.fnTransactionExecute = async (proc) => {
-            void proc;
-            throw new Error("DatabaseClientPipeline must implement interface fnTransactionExecute");
-        };
-        this.fnEscape = (strSQL) => { return strSQL; };
-        this.fnWriteLog = (strContent) => { void strContent; };
-    }
-
-    static findInvalidExecuteParam(param, rootErr = '') {
-        if (Array.isArray(param)) {
-            for (let i = 0; i < param.length; ++i) {
-                const strErr = DatabaseClientPipeline.findInvalidExecuteParam(param[i], rootErr + `[${i}]`);
-                if (strErr) {
-                    return strErr;
-                }
-            }
-            return "";
-        }
-        if (Object.prototype.toString.call(param) == "[object Object]") {
-            const kvMap = Object.entries(param);
-            for (const [k, v] of kvMap) {
-                const strErr = DatabaseClientPipeline.findInvalidExecuteParam(v, rootErr + `.${k}`);
-                if (strErr) {
-                    return strErr;
-                }
-            }
-            return "";
-        }
-        if (null === param) {
-            return `${rootErr} is null`;
-        }
-        if (Object.is(param, NaN)) {
-            return `${rootErr} is NaN`;
-        }
-        if (undefined === param) {
-            return `${rootErr} is undefined`;
-        }
-        return "";
-    }
-
-    static findInvalidExecuteParams(params, rootErr = '') {
-        for (let i = 0; i < params.length; ++i) {
-            const strErr = DatabaseClientPipeline.findInvalidExecuteParam(params[i], rootErr + `[${i}]`);
-            if (strErr) {
-                return strErr;
-            }
-        }
-        return "";
-    }
-}
-
 class DatabaseClientPart {
-    constructor(start_num, end_num, pipeline) {
+    constructor(start_num, end_num) {
         this.partName = null;
         this.startNum = start_num;
         this.endNum = end_num;
-        this.pipeline = pipeline;
+        this.fnWriteLog = null;
     }
 }
 
@@ -76,7 +16,7 @@ class DatabaseClientPartManager {
         };
     }
 
-    selectPipelineByIdx(partName, partIdx) {
+    selectPartByIdx(partName, partIdx) {
         if (typeof partIdx != "bigint" && !Number.isInteger(partIdx)) {
             throw new Error(`DatabaseClientPartManager.selectPart partIdx must bigint or integer`);
         }
@@ -86,13 +26,13 @@ class DatabaseClientPartManager {
         }
         for (const part of clientPartArr) {
             if (partIdx >= part.startNum && partIdx < part.endNum) {
-                return part.pipeline;
+                return part;
             }
         }
         return null;
     }
 
-    selectPipeline(partName, value) {
+    selectPartByValue(partName, value) {
         const clientPartArr = this.clientParts.get(partName);
         if (!clientPartArr || clientPartArr.length <= 0) {
             return null;
@@ -101,7 +41,7 @@ class DatabaseClientPartManager {
         const partIdx = this.fnConvertValueToPartIdx(value, partName, maxNumber);
         for (const part of clientPartArr) {
             if (partIdx >= part.startNum && partIdx < part.endNum) {
-                return part.pipeline;
+                return part;
             }
         }
         return null;
@@ -140,7 +80,6 @@ class DatabaseClientPartManager {
 }
 
 module.exports = {
-    DatabaseClientPipeline,
     DatabaseClientPart,
     DatabaseClientPartManager
 };

@@ -70,8 +70,8 @@ class DatabaseClientPart {
 class DatabaseClientPartManager {
     constructor() {
         this.clientParts = new Map(); // key: partName, value: [DatabaseClientPart]
-        this.fnConvertValueToPartIdx = (value, partMaxNumber) => {
-            void value, partMaxNumber;
+        this.fnConvertValueToPartIdx = (value, partName, partMaxNumber) => {
+            void value, partName, partMaxNumber;
             throw new Error("DatabaseClientPartManager must implement interface fnConvertValueToPartIdx");
         };
     }
@@ -98,7 +98,7 @@ class DatabaseClientPartManager {
             return null;
         }
         const maxNumber = clientPartArr[clientPartArr.length - 1].endNum;
-        const partIdx = this.fnConvertValueToPartIdx(value, maxNumber);
+        const partIdx = this.fnConvertValueToPartIdx(value, partName, maxNumber);
         for (const part of clientPartArr) {
             if (partIdx >= part.startNum && partIdx < part.endNum) {
                 return part.pipeline;

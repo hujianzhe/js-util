@@ -113,17 +113,23 @@ class NetChannelBase {
 		this._connectStatus = NetChannelBase.CONNECT_STATUS_DOING;
 		this._connectResolve = resolve;
 		if (this.connectTimeoutMsec > 0) {
+			let self = this;
 			this._connectTimerId = setTimeout(() => {
-				this._connectResolve = null;
-				this.close(new Error("NetChannel connect timeout"));
-				resolve(resolve_ret);
+				if (self._connectResolve) {
+					self._connectResolve(resolve_ret);
+					self._connectResolve = null;
+				}
+				self.close(new Error("NetChannel connect timeout"));
 			}, this.connectTimeoutMsec);
 		}
 	}
 
-	_afterConnect() {
+	_afterConnect(resolve_ret) {
 		this._connectPromise = null;
-		this._connectResolve = null;
+		if (this._connectResolve) {
+			this._connectResolve(resolve_ret);
+			this._connectResolve = null;
+		}
 		this._connectStatus = NetChannelBase.CONNECT_STATUS_DONE;
 		if (this._connectTimerId) {
 			clearTimeout(this._connectTimerId);
@@ -198,14 +204,18 @@ class NetChannelTcpListener extends NetChannelBase {
 			self._listenResolve = resolve;
 			self._io.on('error', (err) => {
 				self._listenPromise = null;
-				self._listenResolve = null;
+				if (self._listenResolve) {
+					self._listenResolve(false);
+					self._listenResolve = null;
+				}
 				self.close(err);
-				resolve(false);
 			});
 			self._io.on('listening', () => {
 				self._listenPromise = null;
-				self._listenResolve = null;
-				resolve(true);
+				if (self._listenResolve) {
+					self._listenResolve(true);
+					self._listenResolve = null;
+				}
 			});
 			self._io.listen(self._port, self._ip);
 		});
@@ -246,8 +256,7 @@ class NetChannel extends NetChannelBase {
 				self._connectPromise = new Promise((resolve) => {
 					self._prepareConnect(resolve, false);
 					self._io.on('connect', () => {
-						self._afterConnect();
-						resolve(!self._ready_fin);
+						self._afterConnect(!self._ready_fin);
 					});
 				});
 			}
@@ -368,8 +377,11 @@ class NetChannel extends NetChannelBase {
 		}
 	}
 
-	_afterConnect() {
-		super._afterConnect();
+	_afterConnect(resolve_ret) {
+		if (!this._io) {
+			return;
+		}
+		super._afterConnect(resolve_ret);
 		if (this._waitSendBufferWhenConnecting) {
 			this._io.write(this._waitSendBufferWhenConnecting);
 			this._waitSendBufferWhenConnecting = null;
@@ -397,8 +409,7 @@ class NetChannel extends NetChannelBase {
 			this._connectPromise = new Promise((resolve) => {
 				self._prepareConnect(resolve, false);
 				self._io = std_net.createConnection({ host: host, port: port }, () => {
-					self._afterConnect();
-					resolve(!self._ready_fin);
+					self._afterConnect(!self._ready_fin);
 				});
 				self.initEvent();
 			});

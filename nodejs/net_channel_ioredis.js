@@ -17,6 +17,14 @@ class NetIoRedisClientChannel extends NetChannelBase {
         super.close(err);
     }
 
+    _afterConnect(resolve_ret) {
+        if (!this._io) {
+            return;
+        }
+		super._afterConnect(resolve_ret);
+		this.startHeartbeat();
+	}
+
     connect(args) {
         if (NetChannelBase.CONNECT_STATUS_DONE == this._connectStatus) {
             return true;
@@ -29,9 +37,7 @@ class NetIoRedisClientChannel extends NetChannelBase {
             self._prepareConnect(resolve, false);
             self._io = new Redis(args);
             self._io.on('ready', () => {
-                self._afterConnect();
-                self.startHeartbeat();
-                resolve(true);
+                self._afterConnect(self._io != null);
             });
             self._io.on('error', (err) => {
                 if (self.managedClose) {

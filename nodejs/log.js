@@ -1,7 +1,7 @@
 const std_fs = require('fs');
 
-class LogFileOption {
-    static DefaultDay = {
+const LogFileOption = {
+    RotateDefaultDay: {
         rotateTimelenSec: 86400,
         fnOutputPrefix: default_output_prefix,
         fnNewFullPath: (base_path, key, date) => {
@@ -12,9 +12,9 @@ class LogFileOption {
                 return `${base_path}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}.log`;
             }
         }
-    };
+    },
 
-    static DefaultHour = {
+    RotateDefaultHour: {
         rotateTimelenSec: 3600,
         fnOutputPrefix: default_output_prefix,
         fnNewFullPath: (base_path, key, date) => {
@@ -25,9 +25,9 @@ class LogFileOption {
                 return `${base_path}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}_${date.getHours()}.log`;
             }
         }
-    };
+    },
 
-    static DefaultMinute = {
+    RotateDefaultMinute: {
         rotateTimelenSec: 60,
         fnOutputPrefix: default_output_prefix,
         fnNewFullPath: (base_path, key, date) => {
@@ -38,9 +38,9 @@ class LogFileOption {
                 return `${base_path}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}_${date.getHours()}_${date.getMinutes()}.log`;
             }
         }
-    };
+    },
 
-    static default_output_prefix(logItemInfo) {
+    OutputDefaultPrefix: (logItemInfo) => {
         const date = logItemInfo.date;
         return `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()} \
 ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}|\
@@ -49,12 +49,13 @@ ${logItemInfo.priorityStr}|${logItemInfo.sourceFile}:${logItemInfo.sourceLine}|`
 }
 
 class LogFile {
-    constructor(key, base_path, opt) {
+    constructor(key, base_path) {
         this.fd = null;
         this.key = key;
         this.basePath = base_path;
         this.rotateTimestampSec = 0;
-        this.opt = opt;
+        this.outputOpt = null;
+        this.rotateOpt = null;
         this._rotatePromise = null;
         this._rotateResolve = null;
     }
@@ -77,7 +78,7 @@ class LogFile {
         if (this._rotatePromise) {
             return this._rotatePromise;
         }
-        const opt = this.opt;
+        const opt = this.rotateOpt;
         let new_path = null;
         if (cur_sec >= this.rotateTimestampSec && opt.rotateTimelenSec > 0) {
             if (this.fd) {
@@ -130,13 +131,13 @@ class LogFile {
     _formatWrite(priority, source_file, source_line, content) {
         const now_msec = Date.now();
         const date = new Date(now_msec);
-        content = this.opt.fnOutputPrefix({
+        content = this.outputOpt.fnOutputPrefix({
             priorityStr: Log.PriorityString[priority];
             sourceFile: source_file;
             sourceLine: source_line;
             date: new Date();
         }) + content;
-        _write(content, date, Math.floor(now_msec / 1000));
+        this._write(content, date, Math.floor(now_msec / 1000));
     }
 }
 
@@ -155,20 +156,19 @@ class Log {
         this.files = new Map();
     }
 
-    enableFile(key, opt, base_path) {
+    enableFile(key, base_path, output_opt, rotate_opt) {
         let lf = this.files.get(key);
         if (lf) {
             return false;
         }
-        lf = new LogFile(key, base_path, opt);
-        if (opt.rotateTimelenSec > 0) {
+        lf = new LogFile(key, base_path);
+        lf.outputOpt = output_opt || LogFileOption.OutputDefaultPrefix;
+        lf.rotateOpt = rotate_opt;
+        if (rotate_opt && rotate_opt.rotateTimelenSec > 0) {
             const tz_off_sec = new Date().getTimezoneOffset() * 60;
             const localtime_sec = Math.floor(Date.now() / 1000) - tz_off_sec;
-            const t = localtime_sec / opt.rotateTimelenSec * opt.rotateTimelenSec + tz_off_sec;
-            lf.rotateTimestampSec = t + opt.rotateTimelenSec;
-        }
-        else {
-            lf.rotateTimestampSec = 0;
+            const t = localtime_sec / rotate_opt.rotateTimelenSec * rotate_opt.rotateTimelenSec + tz_off_sec;
+            lf.rotateTimestampSec = t + rotate_opt.rotateTimelenSec;
         }
         this.files.set(key, lf);
         return true;
@@ -215,5 +215,6 @@ class Log {
 }
 
 module.exports = {
+    LogFileOption,
     Log
 };

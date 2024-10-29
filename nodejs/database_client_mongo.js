@@ -14,6 +14,16 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
         this._client = null;
         this._db = null;
         this._connectPromise = null;
+        this._connectResolve = null;
+    }
+
+    close() {
+        if (this._client) {
+            this._client.close();
+            this._client = null;
+        }
+        this._db = null;
+        this._afterConnect();
     }
 
     connect() {
@@ -26,26 +36,30 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
         let self = this;
         this._connectPromise = new Promise((resolve) => {
             let client = new MongoClient(self.url);
+            self._connectResolve = resolve;
             try {
                 client.connect((err) => {
+                    if (!self._connectResolve) {
+                        return;
+                    }
                     if (err) {
-                        resolve(null);
+                        self._afterConnect(null);
                         return;
                     }
                     if (self.database) {
                         self._db = client.db(self.database);
                         if (!self._db) {
                             client.close();
-                            resolve(null);
+                            self._afterConnect(null);
                             return;
                         }
                     }
                     self._client = client;
-                    resolve(client);
+                    self._afterConnect(client);
                 });
             }
             catch (e) {
-                resolve(null);
+                self._afterConnect(null);
                 self.err = e;
                 throw e;
             }
@@ -67,6 +81,14 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
         finally {
             session.endSession();
         }
+    }
+
+    _afterConnect(retval) {
+        if (this._connectResolve) {
+            this._connectResolve(retval);
+            this._connectResolve = null;
+        }
+        this._connectPromise = null;
     }
 }
 

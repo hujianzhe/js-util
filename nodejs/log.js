@@ -1,19 +1,50 @@
 const std_fs = require('fs');
 
-class LogItemInfo {
-    constructor() {
-        this.priority = "";
-        this.sourceFile = "";
-        this.sourceLine = 0;
-        this.date = null;
-    }
-}
-
 class LogFileOption {
-    constructor() {
-        this.rotateTimelenSec = 0;
-        this.fnOutputPrefix = (logItemInfo) => { void logItemInfo; return ""; };
-        this.fnNewFullPath = (base_path, key, date) => { void date; return `${base_path}/${key}`; };
+    static DefaultDay = {
+        rotateTimelenSec: 86400,
+        fnOutputPrefix: default_output_prefix,
+        fnNewFullPath: (base_path, key, date) => {
+            if (key) {
+                return `${base_path}${key}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}.log`;
+            }
+            else {
+                return `${base_path}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}.log`;
+            }
+        }
+    };
+
+    static DefaultHour = {
+        rotateTimelenSec: 3600,
+        fnOutputPrefix: default_output_prefix,
+        fnNewFullPath: (base_path, key, date) => {
+            if (key) {
+                return `${base_path}${key}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}_${date.getHours()}.log`;
+            }
+            else {
+                return `${base_path}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}_${date.getHours()}.log`;
+            }
+        }
+    };
+
+    static DefaultMinute = {
+        rotateTimelenSec: 60,
+        fnOutputPrefix: default_output_prefix,
+        fnNewFullPath: (base_path, key, date) => {
+            if (key) {
+                return `${base_path}${key}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}_${date.getHours()}_${date.getMinutes()}.log`;
+            }
+            else {
+                return `${base_path}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}_${date.getHours()}_${date.getMinutes()}.log`;
+            }
+        }
+    };
+
+    static default_output_prefix(logItemInfo) {
+        const date = logItemInfo.date;
+        return `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()} \
+${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}|\
+${logItemInfo.priorityStr}|${logItemInfo.sourceFile}:${logItemInfo.sourceLine}|`;
     }
 }
 
@@ -27,6 +58,20 @@ class LogFile {
         this._rotatePromise = null;
         this._rotateResolve = null;
     }
+
+    destroy() {
+        this._rotatePromise = null;
+        if (this._rotateResolve) {
+            this._rotateResolve();
+            this._rotateResolve = null;
+        }
+        if (this.fd) {
+            std_fs.close(this.fd);
+            this.fd = null;
+        }
+    }
+
+// private:
 
     _rotate(date, cur_sec) {
         if (this._rotatePromise) {
@@ -75,20 +120,34 @@ class LogFile {
         return this._rotatePromise;
     }
 
-    destroy() {
-        this._rotatePromise = null;
-        if (this._rotateResolve) {
-            this._rotateResolve();
-            this._rotateResolve = null;
-        }
+    async _write(content, date, cur_sec) {
+        await this._rotate(date, cur_sec);
         if (this.fd) {
-            std_fs.close(this.fd);
-            this.fd = null;
+            std_fs.write(this.fd, content);
         }
+    }
+
+    _formatWrite(priority, source_file, source_line, content) {
+        const now_msec = Date.now();
+        const date = new Date(now_msec);
+        content = this.opt.fnOutputPrefix({
+            priorityStr: Log.PriorityString[priority];
+            sourceFile: source_file;
+            sourceLine: source_line;
+            date: new Date();
+        }) + content;
+        _write(content, date, Math.floor(now_msec / 1000));
     }
 }
 
 class Log {
+    static Priority = {
+        Info: 0,
+        Debug: 1,
+        Error: 2
+    };
+    static PriorityString = [ "Info", "Debug", "Error" ];
+
     constructor() {
         this.curFilterPriority = -1;
         this.fnPriorityFilter = null;
@@ -101,6 +160,15 @@ class Log {
             return false;
         }
         lf = new LogFile(key, base_path, opt);
+        if (opt.rotateTimelenSec > 0) {
+            const tz_off_sec = new Date().getTimezoneOffset() * 60;
+            const localtime_sec = Math.floor(Date.now() / 1000) - tz_off_sec;
+            const t = localtime_sec / opt.rotateTimelenSec * opt.rotateTimelenSec + tz_off_sec;
+            lf.rotateTimestampSec = t + opt.rotateTimelenSec;
+        }
+        else {
+            lf.rotateTimestampSec = 0;
+        }
         this.files.set(key, lf);
         return true;
     }
@@ -112,10 +180,35 @@ class Log {
         this.files.clear();
     }
 
+    checkPriorityFilter(priority) {
+        return this.fnPriorityFilter && this.fnPriorityFilter(priority, this.curFilterPriority);
+    }
+
+    info(key, source_file, source_line, content) {
+        this._print(key, Log.Priority.Info, source_file, source_line, content);
+    }
+
+    debug(key, source_file, source_line, content) {
+        this._print(key, Log.Priority.Debug, source_file, source_line, content);
+    }
+
+    error(key, source_file, source_line, content) {
+        this._print(key, Log.Priority.Error, source_file, source_line, content);
+    }
+
 // private:
+    _print(key, priority, source_file, source_line, content) {
+        if (!this.checkPriorityFilter(priority)) {
+            return;
+        }
+        let lf = this.files.get(key);
+        if (!lf) {
+            return;
+        }
+        lf._formatWrite(priority, source_file, source_line, content);
+    }
 }
 
 module.exports = {
-    Log,
-    LogFileOption
+    Log
 };

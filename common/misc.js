@@ -31,3 +31,37 @@ js_util.Common.inherit = function (child_class, parent_class) {
     child_class.prototype = new f();
 	child_class.prototype.constructor = child_class;
 };
+
+js_util.Common.lineNo = function () {
+    const str = new Error().stack;
+    let idx = str.indexOf('lineNo');
+    if (idx < 0) {
+        return 0;
+    }
+    idx += 'lineNo'.length;
+    idx = str.indexOf('\n', idx);
+    if (idx < 0) {
+        return 0;
+    }
+    idx += 1;
+    idx = str.indexOf('\n', idx);
+    if (idx < 0) {
+        return 0;
+    }
+    idx -= 1;
+    idx = str.lastIndexOf(':', idx);
+    if (idx < 0) {
+        return 0;
+    }
+    idx -= 1;
+    idx = str.lastIndexOf(':', idx);
+    if (idx < 0) {
+        return 0;
+    }
+    let s = idx + 1;
+    let e = str.indexOf(':', s);
+    if (e < 0) {
+        return 0;
+    }
+    return Number.parseInt(str.substring(s, e));
+};

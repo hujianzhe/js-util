@@ -60,7 +60,9 @@ class LogFile {
         this._rotateResolve = null;
     }
 
-    destroy() {
+// private:
+
+    _destroy() {
         this._rotatePromise = null;
         if (this._rotateResolve) {
             this._rotateResolve();
@@ -72,7 +74,15 @@ class LogFile {
         }
     }
 
-// private:
+    _set_rotate(opt) {
+        if (opt.rotateTimelenSec > 0) {
+            const tz_off_sec = new Date().getTimezoneOffset() * 60;
+            const localtime_sec = Math.floor(Date.now() / 1000) - tz_off_sec;
+            const t = localtime_sec / opt.rotateTimelenSec * opt.rotateTimelenSec + tz_off_sec;
+            this.rotateTimestampSec = t + opt.rotateTimelenSec;
+        }
+        this.rotateOpt = opt;
+    }
 
     _rotate(date, cur_sec) {
         if (this._rotatePromise) {
@@ -162,21 +172,15 @@ class Log {
             return false;
         }
         lf = new LogFile(key, base_path);
-        lf.outputOpt = output_opt || LogFileOption.OutputDefaultPrefix;
-        lf.rotateOpt = rotate_opt;
-        if (rotate_opt && rotate_opt.rotateTimelenSec > 0) {
-            const tz_off_sec = new Date().getTimezoneOffset() * 60;
-            const localtime_sec = Math.floor(Date.now() / 1000) - tz_off_sec;
-            const t = localtime_sec / rotate_opt.rotateTimelenSec * rotate_opt.rotateTimelenSec + tz_off_sec;
-            lf.rotateTimestampSec = t + rotate_opt.rotateTimelenSec;
-        }
+        lf.outputOpt = output_opt;
+        lf._set_rotate(rotate_opt);
         this.files.set(key, lf);
         return true;
     }
 
     destroy() {
         for (const lf of this.files.values()) {
-            lf.destroy();
+            lf._destroy();
         }
         this.files.clear();
     }

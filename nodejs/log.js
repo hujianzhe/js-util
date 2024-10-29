@@ -141,12 +141,14 @@ class LogFile {
     _formatWrite(priority, source_file, source_line, content) {
         const now_msec = Date.now();
         const date = new Date(now_msec);
-        content = this.outputOpt.fnOutputPrefix({
-            priorityStr: Log.PriorityString[priority];
-            sourceFile: source_file;
-            sourceLine: source_line;
-            date: new Date();
-        }) + content;
+        if (this.outputOpt) {
+            content = this.outputOpt.fnOutputPrefix({
+                priorityStr: Log.PriorityString[priority];
+                sourceFile: source_file;
+                sourceLine: source_line;
+                date: new Date();
+            }) + content;
+        }
         this._write(content, date, Math.floor(now_msec / 1000));
     }
 }

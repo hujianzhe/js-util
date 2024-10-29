@@ -142,11 +142,12 @@ class LogFile {
 
 class Log {
     static Priority = {
-        Info: 0,
-        Debug: 1,
-        Error: 2
+        Trace: 0,
+        Info: 1,
+        Debug: 2,
+        Error: 3
     };
-    static PriorityString = [ "Info", "Debug", "Error" ];
+    static PriorityString = [ "Trace", "Info", "Debug", "Error" ];
 
     constructor() {
         this.curFilterPriority = -1;
@@ -182,6 +183,10 @@ class Log {
 
     checkPriorityFilter(priority) {
         return this.fnPriorityFilter && this.fnPriorityFilter(priority, this.curFilterPriority);
+    }
+
+    trace(key, source_file, source_line, content) {
+        this._print(key, Log.Priority.Trace, source_file, source_line, content);
     }
 
     info(key, source_file, source_line, content) {

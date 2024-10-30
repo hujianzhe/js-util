@@ -3,7 +3,6 @@ const std_fs = require('fs');
 const LogFileOption = {
     RotateDefaultDay: {
         rotateTimelenSec: 86400,
-        fnOutputPrefix: default_output_prefix,
         fnNewFullPath: (base_path, key, date) => {
             if (key) {
                 return `${base_path}${key}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}.log`;
@@ -16,7 +15,6 @@ const LogFileOption = {
 
     RotateDefaultHour: {
         rotateTimelenSec: 3600,
-        fnOutputPrefix: default_output_prefix,
         fnNewFullPath: (base_path, key, date) => {
             if (key) {
                 return `${base_path}${key}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}_${date.getHours()}.log`;
@@ -29,7 +27,6 @@ const LogFileOption = {
 
     RotateDefaultMinute: {
         rotateTimelenSec: 60,
-        fnOutputPrefix: default_output_prefix,
         fnNewFullPath: (base_path, key, date) => {
             if (key) {
                 return `${base_path}${key}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}_${date.getHours()}_${date.getMinutes()}.log`;
@@ -40,17 +37,19 @@ const LogFileOption = {
         }
     },
 
-    OutputDefaultPrefix: (logItemInfo) => {
-        const date = logItemInfo.date;
-        let prefix = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()} \
+    OutputDefaultPrefix: {
+        fnOutputPrefix: (logItemInfo) => {
+            const date = logItemInfo.date;
+            let prefix = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()} \
 ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}|${logItemInfo.priorityStr}`;
-        if (logItemInfo.sourceFile) {
-            prefix += `|${logItemInfo.sourceFile}`;
+            if (logItemInfo.sourceFile) {
+                prefix += `|${logItemInfo.sourceFile}`;
+            }
+            if (logItemInfo.sourceLine) {
+                prefix += `:${logItemInfo.sourceLine}`;
+            }
+            return prefix + '|';
         }
-        if (logItemInfo.sourceLine) {
-            prefix += `:${logItemInfo.sourceLine}`;
-        }
-        return prefix + '|';
     }
 }
 
@@ -62,6 +61,7 @@ class LogFile {
         this.rotateTimestampSec = 0;
         this.outputOpt = null;
         this.rotateOpt = null;
+        this._destroyed = false;
         this._rotatePromise = null;
         this._rotateResolve = null;
     }
@@ -78,6 +78,7 @@ class LogFile {
             std_fs.close(this.fd);
             this.fd = null;
         }
+        this._destroyed = true;
     }
 
     _set_rotate_opt(opt) {
@@ -140,11 +141,14 @@ class LogFile {
     async _write(content, date, cur_sec) {
         await this._rotate(date, cur_sec);
         if (this.fd) {
-            std_fs.write(this.fd, content);
+            std_fs.write(this.fd, content, (err, fd) => { void err, fd; });
         }
     }
 
     _formatWrite(priority, content, source_file, source_line) {
+        if (this._destroyed) {
+            return;
+        }
         const now_msec = Date.now();
         const date = new Date(now_msec);
         if (this.outputOpt) {
@@ -155,6 +159,7 @@ class LogFile {
                 date: new Date()
             }) + content;
         }
+        content += '\n';
         this._write(content, date, Math.floor(now_msec / 1000));
     }
 }
@@ -260,7 +265,7 @@ class Log {
 
 // private:
     _print(key, priority, content, source_file, source_line) {
-        if (!this.checkPriorityFilter(priority)) {
+        if (this.checkPriorityFilter(priority)) {
             return;
         }
         let lf = this.files.get(key);

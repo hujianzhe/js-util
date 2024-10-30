@@ -42,9 +42,15 @@ const LogFileOption = {
 
     OutputDefaultPrefix: (logItemInfo) => {
         const date = logItemInfo.date;
-        return `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()} \
-${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}|\
-${logItemInfo.priorityStr}|${logItemInfo.sourceFile}:${logItemInfo.sourceLine}|`;
+        let prefix = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()} \
+${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}|${logItemInfo.priorityStr}`;
+        if (logItemInfo.sourceFile) {
+            prefix += `|${logItemInfo.sourceFile}`;
+        }
+        if (logItemInfo.sourceLine) {
+            prefix += `:${logItemInfo.sourceLine}`;
+        }
+        return prefix + '|';
     }
 }
 
@@ -170,6 +176,9 @@ class Log {
     static FnFilterPriorityNotEqual = (a, b) => { return a != b; }
 
     static sourceLineNo() {
+        if (!this.enableSourceLine) {
+            return 0;
+        }
         const str = new Error().stack;
         let idx = str.indexOf('lineNo');
         if (idx < 0) {

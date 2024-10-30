@@ -180,7 +180,7 @@ class Log {
     static FnFilterPriorityEqual = (a, b) => { return a == b; }
     static FnFilterPriorityNotEqual = (a, b) => { return a != b; }
 
-    static sourceLineNo() {
+    static lineNo() {
         if (!this.enableSourceLine) {
             return 0;
         }

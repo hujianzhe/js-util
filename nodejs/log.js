@@ -74,7 +74,7 @@ class LogFile {
         }
     }
 
-    _set_rotate(opt) {
+    _set_rotate_opt(opt) {
         if (opt.rotateTimelenSec > 0) {
             const tz_off_sec = new Date().getTimezoneOffset() * 60;
             const localtime_sec = Math.floor(Date.now() / 1000) - tz_off_sec;
@@ -143,10 +143,10 @@ class LogFile {
         const date = new Date(now_msec);
         if (this.outputOpt) {
             content = this.outputOpt.fnOutputPrefix({
-                priorityStr: Log.PriorityString[priority];
-                sourceFile: source_file;
-                sourceLine: source_line;
-                date: new Date();
+                priorityStr: Log.PriorityString[priority],
+                sourceFile: source_file,
+                sourceLine: source_line,
+                date: new Date()
             }) + content;
         }
         this._write(content, date, Math.floor(now_msec / 1000));
@@ -175,7 +175,7 @@ class Log {
         }
         lf = new LogFile(key, base_path);
         lf.outputOpt = output_opt;
-        lf._set_rotate(rotate_opt);
+        lf._set_rotate_opt(rotate_opt);
         this.files.set(key, lf);
         return true;
     }

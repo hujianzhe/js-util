@@ -246,7 +246,7 @@ class Log {
         this.files.clear();
     }
 
-    priorityEnabled(priority) {
+    checkPriorityEnabled(priority) {
         if (priority < 0 || priority >= this.enablePriority.length) {
             return false;
         }
@@ -277,7 +277,7 @@ class Log {
 
 // private:
     async _print(key, priority, content, source_file, source_line) {
-        if (!this.priorityEnabled(priority)) {
+        if (!this.checkPriorityEnabled(priority)) {
             return;
         }
         let lf = this.files.get(key);

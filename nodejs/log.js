@@ -255,7 +255,7 @@ class Log {
 
     setPriorityFilter(filter_priority, fn_filter_strategy) {
         for (let i = 0; i < this.enablePriority.length; ++i) {
-            this.enablePriority[i] = fn_filter_strategy(i, filter_priority);
+            this.enablePriority[i] = !fn_filter_strategy(i, filter_priority);
         }
     }
 

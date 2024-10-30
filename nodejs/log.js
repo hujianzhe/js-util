@@ -180,8 +180,9 @@ class Log {
     static FnFilterPriorityEqual = (a, b) => { return a == b; }
     static FnFilterPriorityNotEqual = (a, b) => { return a != b; }
 
+    static enableSourceLine = false;
     static lineNo() {
-        if (!this.enableSourceLine) {
+        if (!Log.enableSourceLine) {
             return 0;
         }
         const str = new Error().stack;
@@ -220,7 +221,6 @@ class Log {
     constructor() {
         this.curFilterPriority = -1;
         this.fnPriorityFilter = null;
-        this.enableSourceLine = false;
         this.files = new Map();
     }
 

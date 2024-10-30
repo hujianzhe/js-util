@@ -162,9 +162,51 @@ class Log {
     };
     static PriorityString = [ "Trace", "Info", "Debug", "Error" ];
 
+    static FnFilterPriorityLess = (a, b) => { return a < b; }
+    static FnFilterPriorityLessEqual = (a, b) => { return a <= b; }
+    static FnFilterPriorityGreater = (a, b) => { return a > b; }
+    static FnFilterPriorityGreaterEqual = (a, b) => { return a >= b; }
+    static FnFilterPriorityEqual = (a, b) => { return a == b; }
+    static FnFilterPriorityNotEqual = (a, b) => { return a != b; }
+
+    static sourceLineNo() {
+        const str = new Error().stack;
+        let idx = str.indexOf('lineNo');
+        if (idx < 0) {
+            return 0;
+        }
+        idx += 'lineNo'.length;
+        idx = str.indexOf('\n', idx);
+        if (idx < 0) {
+            return 0;
+        }
+        idx += 1;
+        idx = str.indexOf('\n', idx);
+        if (idx < 0) {
+            return 0;
+        }
+        idx -= 1;
+        idx = str.lastIndexOf(':', idx);
+        if (idx < 0) {
+            return 0;
+        }
+        idx -= 1;
+        idx = str.lastIndexOf(':', idx);
+        if (idx < 0) {
+            return 0;
+        }
+        let s = idx + 1;
+        let e = str.indexOf(':', s);
+        if (e < 0) {
+            return 0;
+        }
+        return Number.parseInt(str.substring(s, e));
+    }
+
     constructor() {
         this.curFilterPriority = -1;
         this.fnPriorityFilter = null;
+        this.enableSourceLine = false;
         this.files = new Map();
     }
 

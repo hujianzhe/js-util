@@ -145,7 +145,7 @@ class LogFile {
         }
     }
 
-    _formatWrite(priority, content, source_file, source_line) {
+    async _formatWrite(priority, content, source_file, source_line) {
         if (this._destroyed) {
             return;
         }
@@ -160,7 +160,7 @@ class LogFile {
             }) + content;
         }
         content += '\n';
-        this._write(content, date, Math.floor(now_msec / 1000));
+        await this._write(content, date, Math.floor(now_msec / 1000));
     }
 }
 
@@ -247,24 +247,24 @@ class Log {
         return this.fnPriorityFilter && this.fnPriorityFilter(priority, this.curFilterPriority);
     }
 
-    trace(key, content, source_file, source_line) {
-        this._print(key, Log.Priority.Trace, content, source_file, source_line);
+    async trace(key, content, source_file, source_line) {
+        await this._print(key, Log.Priority.Trace, content, source_file, source_line);
     }
 
-    info(key, content, source_file, source_line) {
-        this._print(key, Log.Priority.Info, content, source_file, source_line);
+    async info(key, content, source_file, source_line) {
+        await this._print(key, Log.Priority.Info, content, source_file, source_line);
     }
 
-    debug(key, content, source_file, source_line) {
-        this._print(key, Log.Priority.Debug, content, source_file, source_line);
+    async debug(key, content, source_file, source_line) {
+        await this._print(key, Log.Priority.Debug, content, source_file, source_line);
     }
 
-    error(key, content, source_file, source_line) {
-        this._print(key, Log.Priority.Error, content, source_file, source_line);
+    async error(key, content, source_file, source_line) {
+        await this._print(key, Log.Priority.Error, content, source_file, source_line);
     }
 
 // private:
-    _print(key, priority, content, source_file, source_line) {
+    async _print(key, priority, content, source_file, source_line) {
         if (this.checkPriorityFilter(priority)) {
             return;
         }
@@ -272,7 +272,7 @@ class Log {
         if (!lf) {
             return;
         }
-        lf._formatWrite(priority, content, source_file, source_line);
+        await lf._formatWrite(priority, content, source_file, source_line);
     }
 }
 

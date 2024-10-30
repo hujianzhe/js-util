@@ -1,14 +1,28 @@
 const std_fs = require('fs');
 
+class DateFormat {
+    static dateYMD(date) {
+        let strMonth = `${date.getMonth() + 1}`;
+        if (date.getMonth() + 1 < 10) {
+            strMonth = '0' + strMonth;
+        }
+        let strDay = `${date.getDate()}`;
+        if (date.getDate() < 10) {
+            strDay = '0' + strDay;
+        }
+        return `${date.getFullYear()}${strMonth}${strDay}`;
+    }
+}
+
 const LogFileOption = {
     RotateDefaultDay: {
         rotateTimelenSec: 86400,
         fnNewFullPath: (base_path, key, date) => {
             if (key) {
-                return `${base_path}${key}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}.log`;
+                return `${base_path}${key}_${DateFormat.dateYMD(date)}.log`;
             }
             else {
-                return `${base_path}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}.log`;
+                return `${base_path}_${DateFormat.dateYMD(date)}.log`;
             }
         }
     },
@@ -17,10 +31,10 @@ const LogFileOption = {
         rotateTimelenSec: 3600,
         fnNewFullPath: (base_path, key, date) => {
             if (key) {
-                return `${base_path}${key}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}_${date.getHours()}.log`;
+                return `${base_path}${key}_${DateFormat.dateYMD(date)}_${date.getHours()}.log`;
             }
             else {
-                return `${base_path}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}_${date.getHours()}.log`;
+                return `${base_path}_${DateFormat.dateYMD(date)}_${date.getHours()}.log`;
             }
         }
     },
@@ -29,10 +43,10 @@ const LogFileOption = {
         rotateTimelenSec: 60,
         fnNewFullPath: (base_path, key, date) => {
             if (key) {
-                return `${base_path}${key}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}_${date.getHours()}_${date.getMinutes()}.log`;
+                return `${base_path}${key}_${DateFormat.dateYMD(date)}_${date.getHours()}_${date.getMinutes()}.log`;
             }
             else {
-                return `${base_path}_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}_${date.getHours()}_${date.getMinutes()}.log`;
+                return `${base_path}_${DateFormat.dateYMD(date)}_${date.getHours()}_${date.getMinutes()}.log`;
             }
         }
     },

@@ -219,9 +219,12 @@ class Log {
     }
 
     constructor() {
-        this.curFilterPriority = -1;
-        this.fnPriorityFilter = null;
+        this.enablePriority = [];
         this.files = new Map();
+
+        for (let i = 0; i < Log.PriorityString.length; ++i) {
+            this.enablePriority.push(true);
+        }
     }
 
     enableFile(key, base_path, output_opt, rotate_opt) {
@@ -243,8 +246,17 @@ class Log {
         this.files.clear();
     }
 
-    checkPriorityFilter(priority) {
-        return this.fnPriorityFilter && this.fnPriorityFilter(priority, this.curFilterPriority);
+    priorityEnabled(priority) {
+        if (priority < 0 || priority >= this.enablePriority.length) {
+            return false;
+        }
+        return this.enablePriority[priority];
+    }
+
+    setPriorityFilter(filter_priority, fn_filter_strategy) {
+        for (let i = 0; i < this.enablePriority.length; ++i) {
+            this.enablePriority[i] = fn_filter_strategy(i, filter_priority);
+        }
     }
 
     async trace(key, content, source_file, source_line) {
@@ -265,7 +277,7 @@ class Log {
 
 // private:
     async _print(key, priority, content, source_file, source_line) {
-        if (this.checkPriorityFilter(priority)) {
+        if (!this.priorityEnabled(priority)) {
             return;
         }
         let lf = this.files.get(key);

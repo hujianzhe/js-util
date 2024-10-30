@@ -138,7 +138,7 @@ class LogFile {
         }
     }
 
-    _formatWrite(priority, source_file, source_line, content) {
+    _formatWrite(priority, content, source_file, source_line) {
         const now_msec = Date.now();
         const date = new Date(now_msec);
         if (this.outputOpt) {
@@ -233,24 +233,24 @@ class Log {
         return this.fnPriorityFilter && this.fnPriorityFilter(priority, this.curFilterPriority);
     }
 
-    trace(key, source_file, source_line, content) {
-        this._print(key, Log.Priority.Trace, source_file, source_line, content);
+    trace(key, content, source_file, source_line) {
+        this._print(key, Log.Priority.Trace, content, source_file, source_line);
     }
 
-    info(key, source_file, source_line, content) {
-        this._print(key, Log.Priority.Info, source_file, source_line, content);
+    info(key, content, source_file, source_line) {
+        this._print(key, Log.Priority.Info, content, source_file, source_line);
     }
 
-    debug(key, source_file, source_line, content) {
-        this._print(key, Log.Priority.Debug, source_file, source_line, content);
+    debug(key, content, source_file, source_line) {
+        this._print(key, Log.Priority.Debug, content, source_file, source_line);
     }
 
-    error(key, source_file, source_line, content) {
-        this._print(key, Log.Priority.Error, source_file, source_line, content);
+    error(key, content, source_file, source_line) {
+        this._print(key, Log.Priority.Error, content, source_file, source_line);
     }
 
 // private:
-    _print(key, priority, source_file, source_line, content) {
+    _print(key, priority, content, source_file, source_line) {
         if (!this.checkPriorityFilter(priority)) {
             return;
         }
@@ -258,7 +258,7 @@ class Log {
         if (!lf) {
             return;
         }
-        lf._formatWrite(priority, source_file, source_line, content);
+        lf._formatWrite(priority, content, source_file, source_line);
     }
 }
 

@@ -11,28 +11,22 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 		heartbeat_interval_sec: 0,
 	};
 
-	static ErrorCode = {
-		NORMAL : 0,
-		CONNECT : 1,
-		ZOMBIE : 2
-	};
-
 	constructor(opts = WebSocketClient.default_constructor_params) {
 		this.socket = null;
 		this.opts = opts;
 		this.connect_timerid = null;
+		this.connect_promise = null;
 		this.connect_resolve = null;
 		this.heartbeat_do_times = 0;
 		this.heartbeat_timerid = null;
 		this.recv_timestamp_msec = 0;
 		this.connecting_send_cache = null;
-		this.error_code = WebSocketClient.ErrorCode.NORMAL;
 		this.session = null;
 		this.onmessage = function(e) { void e; };
 		this.onheartbeat = function() {};
 	}
 
-	close() {
+	close(err) {
 		if (!this.socket) {
 			return;
 		}
@@ -50,9 +44,10 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 			this.connect_resolve(null);
 			this.connect_resolve = null;
 		}
+		this.connect_promise = null;
 		if (this.session) {
 			this.session.socket = null;
-			this.session.onclose(this.error_code);
+			this.session.onclose(err);
 			this.session = null;
 		}
 	}
@@ -78,8 +73,8 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 	}
 
 	connect(url, protocols) {
-		if (this.socket) {
-			throw Error("WebSocketClient connect again");
+		if (this.connect_promise) {
+			return this.connect_promise;
 		}
 		let ws = new WebSocket(url, protocols);
 		if (this.opts.binaryType) {
@@ -87,7 +82,6 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 		}
 		this.socket = ws;
 		let self_this = this;
-
 		function start_heartbeat(ws_obj) {
 			const interval_sec = ws_obj.opts.heartbeat_interval_sec;
 			if (interval_sec <= 0) {
@@ -104,9 +98,8 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 			ws_obj.heartbeat_timerid = setTimeout(function proc() {
 				clearTimeout(ws_obj.heartbeat_timerid);
 				if (ws_obj.heartbeat_do_times >= ws_obj.heartbeat_max_times) {
-					ws_obj.error_code = WebSocketClient.ErrorCode.ZOMBIE;
 					ws_obj.heartbeat_timerid = null;
-					ws_obj.close();
+					ws_obj.close(new Error("heartbeat timeout"));
 					return;
 				}
 				ws_obj.heartbeat_do_times++;
@@ -114,53 +107,44 @@ js_util.DOM.WebSocketClient = class WebSocketClient {
 				ws_obj.heartbeat_timerid = setTimeout(proc, interval_sec * 1000);
 			}, interval_sec * 1000);
 		}
-
-		ws.onclose = (e) => {
-			if (self_this.connect_resolve) {
-				self_this.error_code = WebSocketClient.ErrorCode.CONNECT;
-			}
-			self_this.close();
-		};
-		ws.onerror = (e) => {
-			if (self_this.connect_resolve) {
-				self_this.error_code = WebSocketClient.ErrorCode.CONNECT;
-			}
-			self_this.close();
-		};
-		return new Promise((resolve) => {
+		ws.onclose = (e) => { self_this.close(e); };
+		ws.onerror = (e) => { self_this.close(e); };
+		this.connect_promise = new Promise((resolve) => {
 			self_this.connect_resolve = resolve;
 			if (self_this.opts.connect_timeout_msec >= 0) {
 				self_this.connect_timerid = setTimeout(() => {
 					clearTimeout(self_this.connect_timerid);
 					self_this.connect_timerid = null;
-					resolve(null);
+					self_this.connect_promise = null;
+					self_this.connect_resolve(null);
 					self_this.connect_resolve = null;
-					self_this.error_code = WebSocketClient.ErrorCode.CONNECT;
-					self_this.close();
+					self_this.close(new Error("connect timeout"));
 				}, self_this.opts.connect_timeout_msec);
 			}
 			ws.onopen = function () {
-				self_this.connect_resolve = null;
 				ws.onmessage = function (e) {
 					self_this.recv_timestamp_msec = new Date().getTime();
 					self_this.heartbeat_do_times = 0;
 					self_this.onmessage(e);
 				};
+				self_this.recv_timestamp_msec = new Date().getTime();
 				if (self_this.connect_timerid) {
 					clearTimeout(self_this.connect_timerid);
 					self_this.connect_timerid = null;
 				}
-				self_this.recv_timestamp_msec = new Date().getTime();
-				start_heartbeat(self_this);
+				self_this.connect_promise = null;
+				self_this.connect_resolve(self_this);
+				self_this.connect_resolve = null;
 				if (self_this.connecting_send_cache) {
 					for (const data of self_this.connecting_send_cache) {
 						ws.send(data);
 					}
 					self_this.connecting_send_cache = null;
 				}
-				resolve(self_this);
+				start_heartbeat(self_this);
 			};
 		});
+		return this.connect_promise;
 	}
 };
 

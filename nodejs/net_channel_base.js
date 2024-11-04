@@ -241,8 +241,10 @@ class NetChannel extends NetChannelBase {
 			throw new Error("NetChannel constructor not support LISTEN_SIDE");
 		}
 		super(side, pipeline, io, socktype);
-		this._rbf = Buffer.alloc(0);
-		this._ready_fin = false;
+		this.inbufMaxlen = 0;
+		/* private */
+		this._inbuf = Buffer.alloc(0);
+		this._readyFin = false;
 		this._waitSendBufferWhenConnecting = null;
 		this._initedEvent = false;
 		if (!this._io && (this.socktype != NetConst.SOCK_STREAM || this.side != NetChannelBase.CLIENT_SIDE)) {
@@ -256,7 +258,7 @@ class NetChannel extends NetChannelBase {
 				self._connectPromise = new Promise((resolve) => {
 					self._prepareConnect(resolve, false);
 					self._io.on('connect', () => {
-						self._afterConnect(!self._ready_fin);
+						self._afterConnect(!self._readyFin);
 					});
 				});
 			}
@@ -292,8 +294,8 @@ class NetChannel extends NetChannelBase {
 	}
 
 	close(err) {
-		this._rbf = null;
-		this._ready_fin = false;
+		this._inbuf = null;
+		this._readyFin = false;
 		this._waitSendBufferWhenConnecting = null;
 		if (this._io) {
 			if (this.socktype == NetConst.SOCK_STREAM) {
@@ -309,16 +311,19 @@ class NetChannel extends NetChannelBase {
 	readBuffer(data, rinfo) {
 		this._heartbeatTimes = 0;
 		this._lastRecvMsec = Date.now();
-		this._rbf = Buffer.concat([this._rbf, data]);
+		this._inbuf = Buffer.concat([this._inbuf, data]);
 		do {
 			let decode_length;
 			try {
-				decode_length = this._pipeline.fnReadBuffer(this, this._rbf, rinfo);
+				decode_length = this._pipeline.fnReadBuffer(this, this._inbuf, rinfo);
 				if (decode_length === undefined || decode_length === null) {
 					this.close(new Error("NetChannelBase::readBuffer miss totalLength field"));
 					return;
 				}
 				if (0 == decode_length) {
+					if (this.inbufMaxlen > 0 && this.inbufMaxlen <= this._inbuf.length) {
+						this.close(new Error("NetChannelBase::readBuffer overflow length"));
+					}
 					break;
 				}
 				if (decode_length < 0) {
@@ -329,8 +334,8 @@ class NetChannel extends NetChannelBase {
 				this.close(new Error("NetChannelBase::readBuffer decode exception"));
 				return;
 			}
-			this._rbf = this._rbf.subarray(decode_length);
-		} while (this._rbf.length > 0);
+			this._inbuf = this._inbuf.subarray(decode_length);
+		} while (this._inbuf.length > 0);
 	}
 
 	send(buff, rinfo) {
@@ -369,7 +374,7 @@ class NetChannel extends NetChannelBase {
 			return;
 		}
 		if (this._waitSendBufferWhenConnecting) {
-			this._ready_fin = true;
+			this._readyFin = true;
 			return;
 		}
 		if (this._io) {
@@ -386,7 +391,7 @@ class NetChannel extends NetChannelBase {
 			this._io.write(this._waitSendBufferWhenConnecting);
 			this._waitSendBufferWhenConnecting = null;
 		}
-		if (this._ready_fin) {
+		if (this._readyFin) {
 			this._io.end();
 		}
 		else {
@@ -409,7 +414,7 @@ class NetChannel extends NetChannelBase {
 			this._connectPromise = new Promise((resolve) => {
 				self._prepareConnect(resolve, false);
 				self._io = std_net.createConnection({ host: host, port: port }, () => {
-					self._afterConnect(!self._ready_fin);
+					self._afterConnect(!self._readyFin);
 				});
 				self.initEvent();
 			});

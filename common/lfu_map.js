@@ -13,7 +13,7 @@ js_util.Common.LFUMap = class {
     };
 
     constructor(capacity) {
-        if (capacity <= 0) {
+        if (!capacity || capacity <= 0) {
             throw new Error(`js_util.Common.LFUMap constructor invalid capacity ${capacity}`);
         }
         this._capacity = capacity;

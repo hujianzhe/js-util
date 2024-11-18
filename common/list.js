@@ -100,7 +100,9 @@ js_util.Common.List = class List {
             this.tail = node.prev;
         }
         node.prev = node.next = null;
-        --this.length;
+        if (this.length > 0) {
+            --this.length;
+        }
         return this;
     }
 

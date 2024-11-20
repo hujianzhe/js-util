@@ -25,10 +25,10 @@ class DatabaseClientPartManager {
             return hash % partMaxNumber;
         }
         else if (typeof value === 'bigint') {
-            return value / BigInt(partMaxNumber);
+            return value % BigInt(partMaxNumber);
         }
         else if (typeof value === 'number') {
-            return Number.parseInt(value) / partMaxNumber;
+            return Number.parseInt(value) % partMaxNumber;
         }
         else {
             throw new Error(`DatabaseClientPartManager.defaultConvertValueToPartIdx can't convert ${value}`);

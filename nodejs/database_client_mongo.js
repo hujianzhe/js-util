@@ -8,6 +8,12 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
         this.connOpts = conn_opt || {};
         this.connOpts.useNewUrlParser = true;
         this.connOpts.useUnifiedTopology = true;
+        if (!this.connOpts.serverSelectionTimeoutMS) {
+            this.connOpts.serverSelectionTimeoutMS = 5000;
+        }
+        if (!this.connOpts.socketTimeoutMS) {
+            this.connOpts.socketTimeoutMS = 5000;
+        }
         this.transOpts = trans_opt ? trans_opt : {
             w: "majority",
             j: false,
@@ -63,24 +69,20 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
         this._connectPromise = new Promise((resolve) => {
             let client = new MongoClient(self.url, self.connOpts);
             self._connectResolve = resolve;
-            try {
-                client.connect((err) => {
+            (async () => {
+                try {
+                    await client.connect();
                     if (!self._connectResolve) {
-                        return;
-                    }
-                    if (err) {
-                        self._afterConnect(null);
                         return;
                     }
                     self._client = client;
                     self._afterConnect(client);
-                });
-            }
-            catch (e) {
-                self._afterConnect(null);
-                self.err = e;
-                throw e;
-            }
+                }
+                catch (e) {
+                    self._afterConnect(null);
+                    self.err = e;
+                }
+            })();
         });
         return this._connectPromise;
     }

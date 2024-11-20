@@ -10,7 +10,7 @@ class DatabaseClientPart {
 class DatabaseClientPartManager {
     constructor() {
         this.clientParts = new Map(); // key: partName, value: [DatabaseClientPart]
-        this.fnConvertValueToPartIdx = null;
+        this.fnConvertValueToPartIdx = DatabaseClientPartManager.defaultConvertValueToPartIdx;
     }
 
     static defaultConvertValueToPartIdx(value, partName, partMaxNumber) {
@@ -56,13 +56,7 @@ class DatabaseClientPartManager {
             return null;
         }
         const maxNumber = clientPartArr[clientPartArr.length - 1].endNum;
-        let partIdx;
-        if (this.fnConvertValueToPartIdx) {
-            partIdx = this.fnConvertValueToPartIdx(value, partName, maxNumber);
-        }
-        else {
-            partIdx = DatabaseClientPartManager.defaultConvertValueToPartIdx(value, partName, maxNumber);
-        }
+        const partIdx = this.fnConvertValueToPartIdx(value, partName, maxNumber);
         for (const part of clientPartArr) {
             if (partIdx >= part.startNum && partIdx < part.endNum) {
                 return part;

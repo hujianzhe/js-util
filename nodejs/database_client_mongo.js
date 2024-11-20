@@ -2,17 +2,18 @@ const { DatabaseClientPart } = require('./database_client_manager.js');
 const MongoClient = require('mongodb').MongoClient;
 
 class DatabaseMongodbClientPart extends DatabaseClientPart {
-    constructor(start_num, end_num, url, database) {
+    constructor(start_num, end_num, url, conn_opt, trans_opt) {
         super(start_num, end_num, null);
         this.url = url;
-        this.database = database;
-        this.transOpts = {
+        this.connOpts = conn_opt || {};
+        this.connOpts.useNewUrlParser = true;
+        this.connOpts.useUnifiedTopology = true;
+        this.transOpts = trans_opt ? trans_opt : {
             w: "majority",
             j: false,
             wtimeout: 5000
         };
         this._client = null;
-        this._db = null;
         this._connectPromise = null;
         this._connectResolve = null;
     }
@@ -22,7 +23,6 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
             this._client.close();
             this._client = null;
         }
-        this._db = null;
         this._afterConnect();
     }
 
@@ -35,7 +35,7 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
         }
         let self = this;
         this._connectPromise = new Promise((resolve) => {
-            let client = new MongoClient(self.url);
+            let client = new MongoClient(self.url, self.connOpts);
             self._connectResolve = resolve;
             try {
                 client.connect((err) => {
@@ -45,14 +45,6 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
                     if (err) {
                         self._afterConnect(null);
                         return;
-                    }
-                    if (self.database) {
-                        self._db = client.db(self.database);
-                        if (!self._db) {
-                            client.close();
-                            self._afterConnect(null);
-                            return;
-                        }
                     }
                     self._client = client;
                     self._afterConnect(client);

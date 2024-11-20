@@ -26,6 +26,13 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
         this._afterConnect();
     }
 
+    getDatabase(db_name) {
+        if (!this._client) {
+            return null;
+        }
+        return this._client.db(db_name);
+    }
+
     connect() {
         if (this._client) {
             return this._client;

@@ -10,10 +10,28 @@ class DatabaseClientPart {
 class DatabaseClientPartManager {
     constructor() {
         this.clientParts = new Map(); // key: partName, value: [DatabaseClientPart]
-        this.fnConvertValueToPartIdx = (value, partName, partMaxNumber) => {
-            void value, partName, partMaxNumber;
-            throw new Error("DatabaseClientPartManager must implement interface fnConvertValueToPartIdx");
-        };
+        this.fnConvertValueToPartIdx = null;
+    }
+
+    static defaultConvertValueToPartIdx(value, partName, partMaxNumber) {
+        void partName;
+        if (typeof value === 'string') {
+            let hash = 5381;
+            for (let i = 0; i < string.length; i++) {
+                hash = ((hash << 5) + hash) + string.charCodeAt(i);
+                hash &= 0xFFFFFFFF;
+            }
+            return hash % partMaxNumber;
+        }
+        else if (typeof value === 'bigint') {
+            return value / BigInt(partMaxNumber);
+        }
+        else if (typeof value === 'number') {
+            return Number.parseInt(value) / partMaxNumber;
+        }
+        else {
+            throw new Error(`DatabaseClientPartManager.defaultConvertValueToPartIdx can't convert ${value}`);
+        }
     }
 
     selectPartByIdx(partName, partIdx) {
@@ -38,7 +56,13 @@ class DatabaseClientPartManager {
             return null;
         }
         const maxNumber = clientPartArr[clientPartArr.length - 1].endNum;
-        const partIdx = this.fnConvertValueToPartIdx(value, partName, maxNumber);
+        let partIdx;
+        if (this.fnConvertValueToPartIdx) {
+            partIdx = this.fnConvertValueToPartIdx(value, partName, maxNumber);
+        }
+        else {
+            partIdx = DatabaseClientPartManager.defaultConvertValueToPartIdx(value, partName, maxNumber);
+        }
         for (const part of clientPartArr) {
             if (partIdx >= part.startNum && partIdx < part.endNum) {
                 return part;
@@ -60,7 +84,7 @@ class DatabaseClientPartManager {
         if (!clientPartArr) {
             clientPart.partName = partName;
             this.clientParts.set(partName, [clientPart]);
-            return;
+            return true;
         }
         for (const part of clientPartArr) {
             if (part.startNum < clientPart.startNum && part.endNum <= clientPart.startNum) {
@@ -69,13 +93,14 @@ class DatabaseClientPartManager {
             if (part.startNum >= clientPart.endNum && part.endNum > clientPart.endNum) {
                 continue;
             }
-            throw new Error("DatabaseClientPartManager addPart invalid part range");
+            return false;
         }
         clientPart.partName = partName;
         clientPartArr.push(clientPart);
         clientPartArr.sort((a, b) => {
             return a.endNum - b.endNum;
         });
+        return true;
     }
 }
 

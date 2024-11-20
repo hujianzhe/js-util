@@ -2,8 +2,8 @@ const { DatabaseClientPart } = require('./database_client_manager.js');
 const MongoClient = require('mongodb').MongoClient;
 
 class DatabaseMongodbClientPart extends DatabaseClientPart {
-    constructor(start_num, end_num, url, conn_opt, trans_opt) {
-        super(start_num, end_num, null);
+    constructor(schema, start_num, end_num, url, conn_opt, trans_opt) {
+        super(schema, start_num, end_num);
         this.url = url;
         this.connOpts = conn_opt || {};
         this.connOpts.useNewUrlParser = true;

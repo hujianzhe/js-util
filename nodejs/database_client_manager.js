@@ -1,5 +1,6 @@
 class DatabaseClientPart {
-    constructor(start_num, end_num) {
+    constructor(schema, start_num, end_num) {
+        this.schema = schema;
         this.partName = null;
         this.startNum = start_num;
         this.endNum = end_num;

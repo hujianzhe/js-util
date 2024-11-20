@@ -2,8 +2,8 @@ const { DatabaseClientPart } = require('./database_client_manager.js');
 const Mysql2 = require('mysql2');
 
 class DatabaseMysqlClientPart extends DatabaseClientPart {
-    constructor(start_num, end_num, conf) {
-        super(start_num, end_num, null);
+    constructor(schema, start_num, end_num, conf) {
+        super(schema, start_num, end_num);
         this.conf = conf;
         this._pool_promise = Mysql2.createPool(conf).promise();
     }

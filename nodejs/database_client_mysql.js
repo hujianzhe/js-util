@@ -1,4 +1,4 @@
-const { DatabaseClientPart } = require('./database_client_part.js');
+const { DatabaseClientPart } = require('./database_client_manager.js');
 const Mysql2 = require('mysql2');
 
 class DatabaseMysqlClientPart extends DatabaseClientPart {

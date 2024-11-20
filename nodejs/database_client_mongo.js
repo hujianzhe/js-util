@@ -26,14 +26,33 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
         this._afterConnect();
     }
 
-    getDatabase(db_name) {
+    async promiseDatabase(db_name) {
+        await this._connect();
         if (!this._client) {
             return null;
         }
         return this._client.db(db_name);
     }
 
-    connect() {
+    async transactionExecute(proc) {
+        let session = this._client.startSession();
+        if (!session) {
+            return null;
+        }
+        try {
+            await session.withTransaction(proc, this.transOpts);
+        }
+        catch (e) {
+            throw e;
+        }
+        finally {
+            session.endSession();
+        }
+    }
+
+// private:
+
+    _connect() {
         if (this._client) {
             return this._client;
         }
@@ -64,22 +83,6 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
             }
         });
         return this._connectPromise;
-    }
-
-    async transactionExecute(proc) {
-        let session = this._client.startSession();
-        if (!session) {
-            return null;
-        }
-        try {
-            await session.withTransaction(proc, this.transOpts);
-        }
-        catch (e) {
-            throw e;
-        }
-        finally {
-            session.endSession();
-        }
     }
 
     _afterConnect(retval) {

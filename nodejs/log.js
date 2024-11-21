@@ -99,7 +99,7 @@ class LogFile {
         if (opt.rotateTimelenSec > 0) {
             const tz_off_sec = new Date().getTimezoneOffset() * 60;
             const localtime_sec = Math.floor(Date.now() / 1000) - tz_off_sec;
-            const t = localtime_sec / opt.rotateTimelenSec * opt.rotateTimelenSec + tz_off_sec;
+            const t = Math.floor(localtime_sec / opt.rotateTimelenSec) * opt.rotateTimelenSec + tz_off_sec;
             this.rotateTimestampSec = t + opt.rotateTimelenSec;
         }
         this.rotateOpt = opt;
@@ -117,7 +117,7 @@ class LogFile {
                 this.fd = null;
             }
             new_path = opt.fnNewFullPath(this.basePath, this.key, date);
-            const t = (cur_sec - this.rotateTimestampSec) / opt.rotateTimelenSec;
+            const t = Math.floor((cur_sec - this.rotateTimestampSec) / opt.rotateTimelenSec);
             if (t <= 0) {
                 this.rotateTimestampSec += opt.rotateTimelenSec;
             }

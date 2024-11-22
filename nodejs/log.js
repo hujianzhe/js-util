@@ -147,6 +147,7 @@ class LogFile {
                 }
                 self._rotateResolve();
                 self._rotateResolve = null;
+                self._rotatePromise = null;
             });
         });
         return this._rotatePromise;

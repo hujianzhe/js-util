@@ -1,4 +1,4 @@
-import module from 'internal/process/esm_loader'; // --expose-internals
+//import module from 'internal/process/esm_loader'; // --expose-internals
 import path from 'path';
 import url from 'url';
 

@@ -121,6 +121,10 @@ function parseSheet(sheet) {
         // 遍历列
         for (let j = 0; j < lineRow.length; ++j) {
             const fieldName = fieldRow[j];
+            if (!fieldName || !typeRow[j]) {
+                // 忽略注释列
+                continue;
+            }
             try {
                 const cellValue = parseCellValue(typeRow[j], lineRow[j]);
                 obj[fieldName] = cellValue;

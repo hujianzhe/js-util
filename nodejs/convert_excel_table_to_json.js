@@ -129,7 +129,7 @@ function parseSheet(sheet) {
                 const cellValue = parseCellValue(typeRow[j], lineRow[j]);
                 obj[fieldName] = cellValue;
             } catch (e) {
-                throw new Error(`${fieldName}, ${e.message}`);
+                throw new Error(`${fieldName}, line ${i + 1} err, ${e.message}`);
             }
         }
         sheetDataObjs.push(obj);

@@ -17,6 +17,10 @@ const TableMetaData = {
     fieldLineNo: 2, // 字段名称起始行号(从1开始)
     typeLineNo: 3,  // 字段类型起始行号(从1开始)
     dataLineNo: 4,   // 数据起始行号(从1开始)
+
+    scanExcelDir: './',  // 扫描Excel文件的目录
+    scanExceptFileNames: new Set([]), // 目录中需要排除的Excel文件名
+    outputJsonDir: './', // 生成的JSON文件存放目录
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -60,7 +64,11 @@ function parseCellValue(fieldType, fieldValue) {
         if (!fieldTypeIsExist(fieldType)) {
             throw new Error(`Unknow Type ${fieldType}`);
         }
-        if (!fieldValue || fieldValue.length <= 0) {
+        if (!fieldValue) {
+            return [];
+        }
+        fieldValue = fieldValue.toString();
+        if (fieldValue.length <= 0) {
             return [];
         }
         let i = fieldValue.length;
@@ -140,16 +148,19 @@ function parseExcelTable(path) {
             throw new Error(`${path}.${sheetName}.${e.message}`);
         }
     }
-    console.log(`finish parseExcelTable: ${path}`);
+    console.log('finished');
     return tableJson;
 }
 
 // JSON数据写文件
-async function asyncSaveJsonToFile(path, tableJson) {
-    std_fs.writeFile(path, JSON.stringify(tableJson, null, '\t'), (err) => {
-        if (err) {
-            console.error(`save ${path} error, ${err}`);
-        }
+async function promiseSaveJsonToFile(path, tableJson) {
+    return new Promise((resolve) => {
+        std_fs.writeFile(path, JSON.stringify(tableJson, null, '\t'), (err) => {
+            if (err) {
+                console.error(`save ${path} error, ${err}`);
+            }
+            resolve();
+        });
     });
 }
 
@@ -158,6 +169,38 @@ async function asyncSaveJsonToFile(path, tableJson) {
 //////////////////////////////////////////////////////////////////////////////
 
 // 程序开始
-const filePath = std_process.argv[2];
-const tableJson = parseExcelTable(filePath);
-asyncSaveJsonToFile(std_path.parse(filePath).name + '.json', tableJson);
+(async () => {
+    if (TableMetaData.scanExcelDir) {
+        let promiseArr = [];
+        const fileItems = std_fs.readdirSync(TableMetaData.scanExcelDir);
+        for (const fileName of fileItems) {
+            const filePath = std_path.join(TableMetaData.scanExcelDir, fileName);
+            const fileStat = std_fs.statSync(filePath);
+            if (fileStat.isDirectory()) {
+                continue;
+            }
+            const extName = std_path.parse(filePath).ext;
+            if (extName != '.xlsx') {
+                continue;
+            }
+            if (TableMetaData.scanExceptFileNames.has(fileName)) {
+                continue;
+            }
+            const tableJson = parseExcelTable(filePath);
+            const savePath = TableMetaData.outputJsonDir + std_path.parse(filePath).name + '.json';
+            promiseArr.push(promiseSaveJsonToFile(savePath, tableJson));
+        }
+        await Promise.all(promiseArr);
+    }
+    else {
+        const filePath = std_process.argv[2];
+        if (!filePath) {
+            console.error("Please input Excel path");
+            return;
+        }
+        const tableJson = parseExcelTable(filePath);
+        const savePath = TableMetaData.outputJsonDir + std_path.parse(filePath).name + '.json';
+        await promiseSaveJsonToFile(savePath, tableJson);
+    }
+    console.log("All Excel Files Convert To Json Success !!!");
+})();

@@ -5,12 +5,13 @@ const XLSX = require('xlsx');
 
 // 自定义数据
 const TableMetaData = {
-    // 支持的基本数据类型
-    basicTypes: [
+    basicTypes: new Set([
         'int',
+        'float',
+        'double',
         'string',
         'json',
-    ],
+    ]), // 支持的基本数据类型
 
     typedef: new Map(), // 支持的类型重定义
 
@@ -34,7 +35,7 @@ function fieldTypeIsExist(fieldType) {
     if (idx != -1) {
         basicType = fieldType.substring(0, idx);
     }
-    if (TableMetaData.basicTypes.indexOf(basicType) != -1) {
+    if (TableMetaData.basicTypes.has(basicType)) {
         return true;
     }
     if (TableMetaData.typedef.has(basicType)) {

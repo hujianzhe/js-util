@@ -50,14 +50,16 @@ function checkStringIsInteger(s) {
 		return false;
 	}
 	if (s.length == 1) {
-		if (s.charCodeAt(0) < '0'.charCodeAt(0) || s.charCodeAt(0) > '9'.charCodeAt(0)) {
-			return false;
-		}
+		return s.charCodeAt(0) >= '0'.charCodeAt(0) && s.charCodeAt(0) <= '9'.charCodeAt(0);
 	}
-	else if (s[0] != '+' && s[0] != '-') {
-		return false;
+    let i;
+	if (s[0] == '+' || s[0] == '-') {
+		i = 1;
 	}
-    for (let i = 1; i < s.length; ++i) {
+    else {
+        i = 0;
+    }
+    for (; i < s.length; ++i) {
         if (s.charCodeAt(i) < '0'.charCodeAt(0)) {
             return false;
         }

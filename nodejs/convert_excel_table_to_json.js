@@ -124,7 +124,7 @@ function caculateArrayDimension(fieldType) {
 function parseCellValue(fieldType, strFieldValue) {
     const basicType = getFieldBasicType(fieldType);
     if (!basicType) {
-        throw new Error(`Unknow Type ${fieldType}`);
+        throw new Error(`Unknow Type "${fieldType}"`);
     }
     const dimension = caculateArrayDimension(fieldType);
     if (dimension > 0) {

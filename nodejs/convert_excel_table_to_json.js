@@ -1,7 +1,6 @@
 const std_process = require('process');
 const std_path = require('path');
 const std_fs = require('fs');
-//const XLSX = require('xlsx');
 const ExcelJS = require('exceljs');
 
 // 自定义数据

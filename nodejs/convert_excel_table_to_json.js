@@ -1,7 +1,8 @@
 const std_process = require('process');
 const std_path = require('path');
 const std_fs = require('fs');
-const XLSX = require('xlsx');
+//const XLSX = require('xlsx');
+const ExcelJS = require('exceljs');
 
 // 自定义数据
 const TableMetaData = {
@@ -20,7 +21,7 @@ const TableMetaData = {
     typeLineNo: 3,  // 字段类型起始行号(从1开始)
     dataLineNo: 4,   // 数据起始行号(从1开始)
 
-    scanExcelDir: '',  // 扫描Excel文件的目录
+    scanExcelDir: './',  // 扫描Excel文件的目录
     scanExceptFileNames: new Set([
     ]), // 目录中需要排除的Excel文件名
     outputJsonDir: './', // 生成的JSON文件存放目录
@@ -45,9 +46,17 @@ function getFieldBasicType(fieldType) {
 
 // 判断字符串是不是合法整数格式
 function checkStringIsInteger(s) {
-    if (s[0] != '+' && s[0] != '-' && s[0] == '0') {
-        return false;
-    }
+	if (s.length <= 0) {
+		return false;
+	}
+	if (s.length == 1) {
+		if (s.charCodeAt(0) < '0'.charCodeAt(0) || s.charCodeAt(0) > '9'.charCodeAt(0)) {
+			return false;
+		}
+	}
+	else if (s[0] != '+' && s[0] != '-') {
+		return false;
+	}
     for (let i = 1; i < s.length; ++i) {
         if (s.charCodeAt(i) < '0'.charCodeAt(0)) {
             return false;
@@ -111,71 +120,63 @@ function caculateArrayDimension(fieldType) {
 }
 
 // 解析单元格值
-function parseCellValue(fieldType, fieldValue, strFieldValue) {
+function parseCellValue(fieldType, strFieldValue) {
     const basicType = getFieldBasicType(fieldType);
     if (!basicType) {
         throw new Error(`Unknow Type ${fieldType}`);
     }
     const dimension = caculateArrayDimension(fieldType);
     if (dimension > 0) {
-        if (!fieldValue) {
+        if (!strFieldValue) {
             return [];
         }
-        fieldValue = fieldValue.toString();
-        if (fieldValue.length <= 0) {
-            return [];
-        }
-        let i = fieldValue.length;
+        let i = strFieldValue.length;
         while (i > 0) {
-            if (fieldValue[i - 1] != ']') {
+            if (strFieldValue[i - 1] != ']') {
                 break;
             }
             --i;
         }
-        const d = fieldValue.length - i;
+        const d = strFieldValue.length - i;
         if (d > dimension || d < dimension - 1) {
             throw new Error(`${fieldType} dimension is ${dimension}, but value dimension is ${d + 1}`);
         }
         if (d == dimension - 1) {
-            fieldValue = '[' + fieldValue + ']';
             strFieldValue = '[' + strFieldValue + ']';
         }
-        return JSON.parse(fieldValue);
+        return JSON.parse(strFieldValue);
     }
     switch (basicType) {
         case "float":
         case "double":
         {
-            if (!fieldValue) {
+            if (!strFieldValue) {
                 return 0.0;
             }
             if (!checkStringIsFloatNumber(strFieldValue)) {
                 throw new Error(`${strFieldValue} isn't match type "${basicType}"`);
             }
-            return fieldValue;
+            return Number.parseFloat(strFieldValue);
         }
         case "int":
         {
-            if (!fieldValue) {
+            if (!strFieldValue) {
                 return 0;
             }
             if (!checkStringIsInteger(strFieldValue)) {
                 throw new Error(`${strFieldValue} isn't match type "${basicType}"`);
             }
-            return fieldValue;
+            return Number.parseInt(strFieldValue);
         }
         case "string":
         {
             if (fieldType === "json") {
-                if (!fieldValue) {
+                if (!strFieldValue) {
                     return {};
                 }
-                return JSON.parse(fieldValue);
+                return JSON.parse(strFieldValue);
             }
-            if (!fieldValue) {
-                return "";
-            }
-            return fieldValue.toString();
+            return strFieldValue || "";
         }
     }
     throw new Error(`forget to check and parse: "${basicType}" with "${strFieldValue}"`);
@@ -183,14 +184,27 @@ function parseCellValue(fieldType, fieldValue, strFieldValue) {
 
 // 解析sheet
 function parseSheet(sheet) {
-    const aoa = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+	let aoa = [];
+	sheet.eachRow((row, rowNumber) => {
+		let lineRow = [];
+		row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+			lineRow.push({
+				id: cell.address,
+				text: cell.text
+			});
+		});
+		aoa.push(lineRow);
+	});
     if (aoa.length < TableMetaData.dataLineNo) {
         return null;
     }
-    const cellKeys = Object.keys(sheet).filter(k => k[0] !== '!');
-    let sheetDataObjs = [];
     const fieldRow = aoa[TableMetaData.fieldLineNo - 1];
     const typeRow = aoa[TableMetaData.typeLineNo - 1];
+	const metaColCnt = fieldRow.length;
+	if (metaColCnt != typeRow.length) {
+		throw new Error(`field cnt(${metaColCnt}) != type cnt(${typeRow.length})`);
+	}
+    let sheetDataObjs = [];
     for (let i = TableMetaData.dataLineNo - 1; i < aoa.length; ++i) {
         const lineRow = aoa[i];
         if (lineRow.length <= 0) {
@@ -199,18 +213,27 @@ function parseSheet(sheet) {
         }
         let obj = {};
         // 遍历列
-        for (let j = 0; j < lineRow.length; ++j) {
-            const fieldName = fieldRow[j];
-            if (!fieldName || !typeRow[j]) {
-                // 忽略注释列
-                continue;
-            }
+		const colCnt = Math.max(lineRow.length, metaColCnt);
+        for (let j = 0; j < colCnt; ++j) {
+			if (!fieldRow[j] || !typeRow[j]) {
+                // 忽略无意义的列
+				continue;
+			}
+            const fieldName = fieldRow[j].text;
+			if (!fieldName) {
+				continue;
+			}
+			const typeName = typeRow[j].text;
+			if (!typeName) {
+				continue;
+			}
+			const strValue = lineRow[j] ? lineRow[j].text : "";
             try {
-                const strFieldValue = sheet[cellKeys[lineRow.length * i + j]].w;
-                const cellValue = parseCellValue(typeRow[j], lineRow[j], strFieldValue);
+                const cellValue = parseCellValue(typeName, strValue);
                 obj[fieldName] = cellValue;
             } catch (e) {
-                throw new Error(`${fieldName}, line ${i + 1} err, ${e.message}`);
+				const cellId = lineRow[j] ? lineRow[j].id : "";
+                throw new Error(`${fieldName}, cell=${cellId} (line=${i + 1}, col=${j+1}) err, ${e.message}`);
             }
         }
         sheetDataObjs.push(obj);
@@ -219,22 +242,20 @@ function parseSheet(sheet) {
 }
 
 // 解析Excel
-function parseExcelTable(path) {
-    console.log(`start parseExcelTable: ${path}`);
-    let tableJson = {};
-    const workBook = XLSX.readFile(path);
-    for (const sheetName of workBook.SheetNames) {
+async function promiseParseExcelTable(path) {
+	let tableJson = {};
+	const workBook = await new ExcelJS.Workbook().xlsx.readFile(path);
+	for (const sheet of workBook.worksheets) {
         try {
-            const sheetJson = parseSheet(workBook.Sheets[sheetName]);
+            const sheetJson = parseSheet(sheet);
             if (!sheetJson) {
                 continue;
             }
-            tableJson[sheetName] = sheetJson;
+            tableJson[sheet.name] = sheetJson;
         } catch (e) {
-            throw new Error(`${path}.${sheetName}.${e.message}`);
+            throw new Error(`${path}.${sheet.name}.${e.message}`);
         }
     }
-    console.log('finished');
     return tableJson;
 }
 
@@ -272,9 +293,11 @@ async function promiseSaveJsonToFile(path, tableJson) {
             if (TableMetaData.scanExceptFileNames.has(fileName)) {
                 continue;
             }
-            const tableJson = parseExcelTable(filePath);
             const savePath = TableMetaData.outputJsonDir + std_path.parse(filePath).name + '.json';
-            promiseArr.push(promiseSaveJsonToFile(savePath, tableJson));
+			promiseArr.push((async(filePath, savePath) => {
+				const tableJson = await promiseParseExcelTable(filePath);
+            	await promiseSaveJsonToFile(savePath, tableJson);
+			})(filePath, savePath));
         }
         await Promise.all(promiseArr);
     }
@@ -284,7 +307,7 @@ async function promiseSaveJsonToFile(path, tableJson) {
             console.error("Please input Excel path");
             return;
         }
-        const tableJson = parseExcelTable(filePath);
+        const tableJson = await promiseParseExcelTable(filePath);
         const savePath = TableMetaData.outputJsonDir + std_path.parse(filePath).name + '.json';
         await promiseSaveJsonToFile(savePath, tableJson);
     }

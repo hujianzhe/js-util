@@ -18,6 +18,7 @@ const TableMetaData = {
         ['datetime', 'string'],
     ]), // 支持的类型重定义
 
+    fieldAttrLineNo: 1, // 字段属性标签行号(从1开始)
     fieldLineNo: 2, // 字段名称起始行号(从1开始)
     typeLineNo: 3,  // 字段类型起始行号(从1开始)
     dataLineNo: 4,   // 数据起始行号(从1开始)
@@ -262,6 +263,42 @@ function parseCellValue(fieldType, strFieldValue) {
     throw new Error(`forget to check and parse: "${basicType}" with "${strFieldValue}"`);
 }
 
+// 获取字段属性
+function parseFieldAttrs(fieldAttrRow) {
+    let attrs = [];
+    for (let i = 0; i < fieldAttrRow.length; ++i) {
+        const strAttr = fieldAttrRow[i].text;
+        if (!strAttr) {
+            attrs.push(new Set());
+            continue;
+        }
+        const s = strAttr.indexOf('[');
+        if (s == -1) {
+            attrs.push(new Set());
+            continue;
+        }
+        const e = strAttr.indexOf(']');
+        if (e == -1) {
+            attrs.push(new Set());
+            continue;
+        }
+        if (e <= s) {
+            attrs.push(new Set());
+            continue;
+        }
+        let attrSet = new Set();
+        const partAttrs = strAttr.substring(s + 1, e).split(',');
+        for (const part of partAttrs) {
+            if (part.length <= 0) {
+                continue;
+            }
+            attrSet.add(part);
+        }
+        attrs.push(attrSet);
+    }
+    return attrs;
+}
+
 // 解析sheet
 function parseSheet(sheet) {
 	let aoa = [];
@@ -279,6 +316,10 @@ function parseSheet(sheet) {
 	});
     if (aoa.length < TableMetaData.dataLineNo) {
         return null;
+    }
+    let fieldAttrRow = [];
+    if (TableMetaData.fieldAttrLineNo > 0) {
+        fieldAttrRow = parseFieldAttrs(aoa[TableMetaData.fieldAttrLineNo - 1]);
     }
     const fieldRow = aoa[TableMetaData.fieldLineNo - 1];
     const typeRow = aoa[TableMetaData.typeLineNo - 1];

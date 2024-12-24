@@ -19,14 +19,14 @@ const TableMetaData = {
     ]), // 支持的类型重定义
 
     fieldAttrLineNo: 1, // 字段属性标签行号(从1开始)
-    fieldLineNo: 2, // 字段名称起始行号(从1开始)
+    fieldNameLineNo: 2, // 字段名称起始行号(从1开始)
     typeLineNo: 3,  // 字段类型起始行号(从1开始)
     dataLineNo: 4,   // 数据起始行号(从1开始)
 
     scanExcelDir: '',  // 扫描Excel文件的目录
     scanExceptFileNames: new Set([
     ]), // 目录中需要排除的Excel文件名
-    outputJsonDir: './', // 生成的JSON文件存放目录
+    outputJsonDir: './json/', // 生成的JSON文件存放目录
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -299,6 +299,18 @@ function parseFieldAttrs(fieldAttrRow) {
     return attrs;
 }
 
+// 检查字段值唯一
+function checkFieldAttrUnique(sheetDataObjs, fieldName) {
+    let testSet = new Set();
+    for (const obj of sheetDataObjs) {
+        const cellValue = obj[fieldName];
+        if (testSet.has(cellValue)) {
+            throw new Error(`"${fieldName}" has repeat value "${cellValue}"`);
+        }
+        testSet.add(cellValue);
+    }
+}
+
 // 解析sheet
 function parseSheet(sheet) {
 	let aoa = [];
@@ -321,9 +333,9 @@ function parseSheet(sheet) {
     if (TableMetaData.fieldAttrLineNo > 0) {
         fieldAttrRow = parseFieldAttrs(aoa[TableMetaData.fieldAttrLineNo - 1]);
     }
-    const fieldRow = aoa[TableMetaData.fieldLineNo - 1];
+    const fieldNameRow = aoa[TableMetaData.fieldNameLineNo - 1];
     const typeRow = aoa[TableMetaData.typeLineNo - 1];
-	const metaColCnt = fieldRow.length;
+	const metaColCnt = fieldNameRow.length;
 	if (metaColCnt != typeRow.length) {
 		throw new Error(`field cnt(${metaColCnt}) != type cnt(${typeRow.length})`);
 	}
@@ -338,11 +350,11 @@ function parseSheet(sheet) {
         // 遍历列
 		const colCnt = Math.max(lineRow.length, metaColCnt);
         for (let j = 0; j < colCnt; ++j) {
-			if (!fieldRow[j] || !typeRow[j]) {
+			if (!fieldNameRow[j] || !typeRow[j]) {
                 // 忽略无意义的列
 				continue;
 			}
-            const fieldName = fieldRow[j].text;
+            const fieldName = fieldNameRow[j].text;
 			if (!fieldName) {
 				continue;
 			}
@@ -361,6 +373,14 @@ function parseSheet(sheet) {
         }
         sheetDataObjs.push(obj);
     }
+    // 字段属性检查
+    for (let i = 0; i < fieldAttrRow.length; ++i) {
+        const attrSet = fieldAttrRow[i];
+        if (attrSet.has('noRepeat')) {
+            checkFieldAttrUnique(sheetDataObjs, fieldNameRow[i].text);
+        }
+    }
+    // 返回所有行数据
     return sheetDataObjs;
 }
 

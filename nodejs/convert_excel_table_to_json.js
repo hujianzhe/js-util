@@ -13,14 +13,16 @@ const TableMetaData = {
     ]), // 支持的基本数据类型
 
     typedef: new Map([
-        ['json', 'string']
+        ['json', 'string'],
+        ['time', 'string'],
+        ['datetime', 'string'],
     ]), // 支持的类型重定义
 
     fieldLineNo: 2, // 字段名称起始行号(从1开始)
     typeLineNo: 3,  // 字段类型起始行号(从1开始)
     dataLineNo: 4,   // 数据起始行号(从1开始)
 
-    scanExcelDir: './',  // 扫描Excel文件的目录
+    scanExcelDir: '',  // 扫描Excel文件的目录
     scanExceptFileNames: new Set([
     ]), // 目录中需要排除的Excel文件名
     outputJsonDir: './', // 生成的JSON文件存放目录
@@ -70,7 +72,7 @@ function checkStringIsInteger(s) {
 }
 
 // 判断字符串是不是合法浮点数格式
-function checkStringIsFloatNumber(strValue) {
+function checkStringIsFloat(strValue) {
     if (strValue.indexOf('.') != -1) {
         const parts = strValue.split('.');
         if (parts.length != 1 && parts.length != 2) {
@@ -104,6 +106,65 @@ function checkStringIsFloatNumber(strValue) {
         return true;
     }
     return checkStringIsInteger(strValue);
+}
+
+// 判断字符串是不是合法时间格式
+function checkStringIsTime(strValue) {
+    const parts = strValue.split(':');
+    if (parts.length != 3) {
+        return false;
+    }
+    for (const part of parts) {
+        if (part.length <= 0) {
+            return false;
+        }
+        for (let i = 0; i < part.length; ++i) {
+            if (part.charCodeAt(i) < '0'.charCodeAt(0)) {
+                return false;
+            }
+            if (part.charCodeAt(i) > '9'.charCodeAt(0)) {
+                return false;
+            }
+        }
+    }
+    const h = Number.parseInt(parts[0]);
+    if (h < 0 || h >= 24) {
+        return false;
+    }
+    const m = Number.parseInt(parts[1]);
+    if (m < 0 || m >= 60) {
+        return false;
+    }
+    const s = Number.parseInt(parts[2]);
+    if (s < 0 || s >= 60) {
+        return false;
+    }
+    return true;
+}
+
+// 判断字符串是不是合法日期格式
+function checkStringIsDatetime(strValue) {
+    const parts = strValue.split(' ');
+    if (parts.length != 2) {
+        return false;
+    }
+    const ymd = parts[0].split('-');
+    if (ymd.length != 3) {
+        return false;
+    }
+    if (!parts[1] || !checkStringIsTime(parts[1])) {
+        return false;
+    }
+    try {
+        const dt = new Date(strValue);
+        if (isNaN(dt)) {
+            return false;
+        }
+    } catch (e) {
+        void e;
+        return false;
+    }
+    return true;
 }
 
 // 计算字段维度
@@ -140,7 +201,7 @@ function parseCellValue(fieldType, strFieldValue) {
         }
         const d = strFieldValue.length - i;
         if (d > dimension || d < dimension - 1) {
-            throw new Error(`${fieldType} dimension is ${dimension}, but value dimension is ${d + 1}`);
+            throw new Error(`"${fieldType}" dimension is ${dimension}, but value dimension is ${d + 1}`);
         }
         if (d == dimension - 1) {
             strFieldValue = '[' + strFieldValue + ']';
@@ -154,8 +215,8 @@ function parseCellValue(fieldType, strFieldValue) {
             if (!strFieldValue) {
                 return 0.0;
             }
-            if (!checkStringIsFloatNumber(strFieldValue)) {
-                throw new Error(`${strFieldValue} isn't match type "${basicType}"`);
+            if (!checkStringIsFloat(strFieldValue)) {
+                throw new Error(`"${strFieldValue}" isn't match type "${basicType}"`);
             }
             return Number.parseFloat(strFieldValue);
         }
@@ -165,7 +226,7 @@ function parseCellValue(fieldType, strFieldValue) {
                 return 0;
             }
             if (!checkStringIsInteger(strFieldValue)) {
-                throw new Error(`${strFieldValue} isn't match type "${basicType}"`);
+                throw new Error(`"${strFieldValue}" isn't match type "${basicType}"`);
             }
             return Number.parseInt(strFieldValue);
         }
@@ -177,6 +238,24 @@ function parseCellValue(fieldType, strFieldValue) {
                 }
                 return JSON.parse(strFieldValue);
             }
+            if (fieldType === "time") {
+                if (!strFieldValue) {
+                    return "";
+                }
+                if (!checkStringIsTime(strFieldValue)) {
+                    throw new Error(`"${strFieldValue}" isn't match type "${fieldType}"`);
+                }
+                return strFieldValue;
+            }
+            if (fieldType === "datetime") {
+                if (!strFieldValue) {
+                    return "";
+                }
+                if (!checkStringIsDatetime(strFieldValue)) {
+                    throw new Error(`"${strFieldValue}" isn't match type "${fieldType}"`);
+                }
+                return strFieldValue;
+            }
             return strFieldValue || "";
         }
     }
@@ -187,8 +266,10 @@ function parseCellValue(fieldType, strFieldValue) {
 function parseSheet(sheet) {
 	let aoa = [];
 	sheet.eachRow((row, rowNumber) => {
+        void rowNumber;
 		let lineRow = [];
 		row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+            void colNumber;
 			lineRow.push({
 				id: cell.address,
 				text: cell.text

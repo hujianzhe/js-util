@@ -433,6 +433,10 @@ async function promiseSaveJsonToFile(path, tableJson) {
             if (extName != '.xlsx') {
                 continue;
             }
+            if (fileName.indexOf('~$') != -1) {
+                // 过滤掉excel交换文件
+                continue;
+            }
             if (TableMetaData.scanExceptFileNames.has(fileName)) {
                 continue;
             }

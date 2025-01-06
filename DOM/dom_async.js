@@ -21,14 +21,18 @@ js_util.DOM.ajax_send = function(xhttp, data, timeout_msec = -1) {
 			}, timeout_msec);
 		}
 		xhttp.onreadystatechange = function() {
-			if (this.readyState != 4) {
+			if (xhttp.readyState != 4) {
 				return;
 			}
 			if (timer_id) {
 				clearTimeout(timer_id);
 				timer_id = null;
 			}
-			resolve(this);
+			if (xhttp.status < 200 || xhttp.status >= 300) {
+				resolve(null);
+				return;
+			}
+			resolve(xhttp);
 		};
 		xhttp.send(data);
 	});

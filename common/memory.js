@@ -67,30 +67,6 @@ js_util.Common.memdup = function (buff_or_dv) {
     return js_util.Common.memcpy(dup_buff, buff_or_dv);
 };
 
-js_util.Common.realloc = function (buff_or_dv, byte_length) {
-    let buff_dv = js_util.Common.to_dataview(buff_or_dv);
-    let buff = buff_dv.buffer;
-    if (byte_length < buff.byteLength) {
-        if (buff.resizable) {
-            buff.resize(byte_length);
-        }
-        else {
-            buff = buff.slice(0, byte_length);
-        }
-        return new DataView(buff, buff.byteOffset, buff.byteLength);
-    }
-    if (byte_length > buff.byteLength) {
-        if (buff.resizable && byte_length <= buff.maxByteLength) {
-            buff.resize(byte_length);
-            return new DataView(buff, buff.byteOffset, buff.byteLength);
-        }
-        else {
-            return js_util.Common.memcpy(new ArrayBuffer(byte_length), buff);
-        }
-    }
-    return buff_dv;
-};
-
 js_util.Common.memcmp = function (buff_or_dv1, buff_or_dv2) {
     if (buff_or_dv1 === buff_or_dv2) {
         return 0;

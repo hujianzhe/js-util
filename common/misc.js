@@ -25,6 +25,21 @@ js_util.Common.type_of = function (v) {
     return type_str;
 };
 
+js_util.Common.dup_object = function (obj) {
+	if (typeof obj !== "object") {
+		return obj;
+	}
+	let newobj = {};
+	for (const key in obj) {
+		if (typeof obj[key] === "object") {
+			newobj[key] = js_util.Common.dup_object(obj[key]);
+		} else {
+			newobj[key] = obj[key];
+		}
+	}
+	return newobj;
+};
+
 js_util.Common.inherit = function (child_class, parent_class) {
     let f = function() {};
     f.prototype = parent_class.prototype;

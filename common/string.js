@@ -3,13 +3,6 @@ if (typeof js_util === 'undefined') {
 }
 js_util.Common = js_util.Common || {};
 
-js_util.Common.buffer_to_dataview = function (v) {
-	if (v instanceof DataView) {
-		return v;
-	}
-	return new DataView(v.buffer || v, v.byteOffset || 0, v.byteLength);
-};
-
 js_util.Common.string_to_camel_style = function (str) {
 	return str.substring(0, 1) + str.substring(1).replace(/_([a-z])(?=[a-z]|$)/g, function ($0, $1) {
 		void $0;
@@ -79,59 +72,18 @@ js_util.Common.utf8_bytes_to_string = function(utf8) {
 	return str;
 };
 
-js_util.Common.bytes_fill_buffer = function(bytes, dv, off) {
-	dv = js_util.Common.buffer_to_dataview(dv);
-	for (let i = 0; i < bytes.length; ++i) {
-		dv.setUint8(off + i, bytes[i]);
+js_util.Common.buffer_to_string = function(dv) {
+	if (!(dv instanceof DataView)) {
+		dv = new DataView(dv.buffer || dv, dv.byteOffset || 0, dv.byteLength);
 	}
-};
-
-js_util.Common.buffer_to_bytes = function(dv) {
-	let bytes = [];
-	dv = js_util.Common.buffer_to_dataview(dv);
 	const byteLength = dv.byteLength;
+	let bytes = [];
 	for (let i = 0; i < byteLength; ++i) {
 		bytes.push(dv.getUint8(i));
 	}
-	return bytes;
-};
-
-js_util.Common.buffer_to_string = function(dv) {
-	return js_util.Common.utf8_bytes_to_string(js_util.Common.buffer_to_bytes(dv));
-};
-
-js_util.Common.buffer_concat = function(buff_arr) {
-	let total_length = 0;
-	for (const buf of buff_arr) {
-		total_length += buf.byteLength;
-	}
-	let new_buffer = new Uint8Array(total_length);
-	let offset = 0;
-	for (const buf of buff_arr) {
-		const dv = js_util.Common.buffer_to_dataview(buf);
-		const dv_length = dv.byteLength;
-		for (let i = 0; i < dv_length; ++i) {
-			new_buffer.setUint8(offset++, dv.getUint8(i));
-		}
-	}
-	return new_buffer.buffer;
+	return js_util.Common.utf8_bytes_to_string(bytes);
 };
 
 js_util.Common.string_trim = function(str) {
 	return str.replace(/(^\s*)|(\s*$)/g, "");
-};
-
-js_util.Common.dup_object = function (obj) {
-	if (typeof obj !== "object") {
-		return obj;
-	}
-	let newobj = {};
-	for (const key in obj) {
-		if (typeof obj[key] === "object") {
-			newobj[key] = js_util.Common.dup_object(obj[key]);
-		} else {
-			newobj[key] = obj[key];
-		}
-	}
-	return newobj;
 };

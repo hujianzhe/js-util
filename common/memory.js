@@ -9,11 +9,21 @@ js_util.Common.is_little_endian = function () {
 	return new Int16Array(buffer)[0] === 1;
 };
 
-js_util.Common.to_dataview = function(buff_or_dv) {
-    if (ArrayBuffer.isView(buff_or_dv)) {
-        return new DataView(buff_or_dv.buffer, buff_or_dv.byteOffset || 0, buff_or_dv.byteLength);
+js_util.Common.to_dataview = function(v) {
+    if (v instanceof DataView) {
+        return v;
     }
-    return new DataView(buff_or_dv, buff_or_dv.byteOffset || 0, buff_or_dv.byteLength);
+    return new DataView(v.buffer || v, v.byteOffset || 0, v.byteLength);
+};
+
+js_util.Common.to_uint8_array = function (buff_or_dv) {
+    let dv = js_util.Common.to_dataview(buff_or_dv);
+    const byteLength = dv.byteLength;
+    let bytes = [];
+	for (let i = 0; i < byteLength; ++i) {
+		bytes.push(dv.getUint8(i));
+	}
+	return bytes;
 };
 
 js_util.Common.malloc = function (byte_length, attr = {}) {
@@ -108,7 +118,7 @@ js_util.Common.memcmp = function (buff_or_dv1, buff_or_dv2) {
     return dv1.byteLength - dv2.byteLength;
 };
 
-js_util.Common.memmerge = function (buffs_or_dvs) {
+js_util.Common.mem_merge = function (buffs_or_dvs) {
     let total_byte_length = 0;
     let arr_dv = [];
     for (const item of buffs_or_dvs) {

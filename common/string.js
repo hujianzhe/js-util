@@ -3,12 +3,6 @@ if (typeof js_util === 'undefined') {
 }
 js_util.Common = js_util.Common || {};
 
-js_util.Common.is_little_endian = function () {
-	let buffer = new ArrayBuffer(2);
-	new DataView(buffer).setUint16(0, 0x0001, true);
-	return new Int16Array(buffer)[0] === 1;
-};
-
 js_util.Common.buffer_to_dataview = function (v) {
 	if (v instanceof DataView) {
 		return v;

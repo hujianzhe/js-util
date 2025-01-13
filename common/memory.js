@@ -3,11 +3,17 @@ if (typeof js_util === 'undefined') {
 }
 js_util.Common = js_util.Common || {};
 
+js_util.Common.is_little_endian = function () {
+	let buffer = new ArrayBuffer(2);
+	new DataView(buffer).setUint16(0, 0x0001, true);
+	return new Int16Array(buffer)[0] === 1;
+};
+
 js_util.Common.to_dataview = function(buff_or_dv) {
     if (ArrayBuffer.isView(buff_or_dv)) {
-        return new DataView(buff_or_dv.buffer, buff_or_dv.byteOffset, buff_or_dv.byteLength);
+        return new DataView(buff_or_dv.buffer, buff_or_dv.byteOffset || 0, buff_or_dv.byteLength);
     }
-    return new DataView(buff_or_dv, buff_or_dv.byteOffset, buff_or_dv.byteLength);
+    return new DataView(buff_or_dv, buff_or_dv.byteOffset || 0, buff_or_dv.byteLength);
 };
 
 js_util.Common.malloc = function (byte_length, attr = {}) {
@@ -39,7 +45,8 @@ js_util.Common.memcpy = function (dst, src) {
     }
     const dst_dv = js_util.Common.to_dataview(dst);
     const src_dv = js_util.Common.to_dataview(src);
-    for (let i = 0; i < src_dv.byteLength; ++i) {
+    const max_length = dst_dv.byteLength < src_dv.byteLength ? dst_dv.byteLength : src_dv.byteLength;
+    for (let i = 0; i < max_length; ++i) {
         dst_dv.setUint8(i, src_dv.getUint8(i));
     }
     return dst_dv;
@@ -112,7 +119,8 @@ js_util.Common.memmerge = function (buffs_or_dvs) {
     let total_dv = js_util.Common.malloc(total_byte_length);
     let offset = 0;
     for (const dv of arr_dv) {
-        for (let i = 0; i < dv.byteLength; ++i, ++offset) {
+        const dv_byteLength = dv.byteLength;
+        for (let i = 0; i < dv_byteLength; ++i, ++offset) {
             total_dv.setUint8(offset, dv.getUint8(i));
         }
     }

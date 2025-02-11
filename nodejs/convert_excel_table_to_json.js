@@ -182,6 +182,29 @@ function caculateArrayDimension(fieldType) {
     return d;
 }
 
+// string的数组格式化
+function scanStringArray(strValue) {
+    let finalStr = '';
+    let flag = false;
+    for (let s = 0; s < strValue.length; ++s) {
+        const c = strValue[s];
+        if (c != ']' && c != '[' && c != ',') {
+            if (!flag) {
+                finalStr += '"';
+                flag = true;
+            }
+        }
+        else {
+            if (flag) {
+                finalStr += '"';
+                flag = false;
+            }
+        }
+        finalStr += c;
+    }
+    return finalStr;
+}
+
 // 解析单元格值
 function parseCellValue(fieldType, strFieldValue) {
     const basicType = getFieldBasicType(fieldType);
@@ -207,6 +230,7 @@ function parseCellValue(fieldType, strFieldValue) {
         if (d == dimension - 1) {
             strFieldValue = '[' + strFieldValue + ']';
         }
+        strFieldValue = scanStringArray(strFieldValue);
         return JSON.parse(strFieldValue);
     }
     switch (basicType) {

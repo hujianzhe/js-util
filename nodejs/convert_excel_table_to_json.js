@@ -230,7 +230,9 @@ function parseCellValue(fieldType, strFieldValue) {
         if (d == dimension - 1) {
             strFieldValue = '[' + strFieldValue + ']';
         }
-        strFieldValue = scanStringArray(strFieldValue);
+        if ('string' == basicType) {
+            strFieldValue = scanStringArray(strFieldValue);
+        }
         return JSON.parse(strFieldValue);
     }
     switch (basicType) {

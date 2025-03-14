@@ -253,10 +253,9 @@ js_util.DOM.canvas_fill_canvas = function (dstCanvas, srcCanvas) {
 
 js_util.DOM.fill_image_in_canvas = function (canvas, img_param) {
 	function fn_fill(canvas, image) {
-		canvas.width = image.width;
-		canvas.height = image.height;
 		const ctx = canvas.getContext('2d');
-		ctx.drawImage(image, 0, 0, image.width, image.height);
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 	}
 	if (typeof img_param === "string") {
 		let image = new Image();

@@ -33,25 +33,36 @@ js_util.Common.new_promise = function () {
     };
 };
 
-js_util.Common.promise_sleep = async function(ms) {
-    const INT32_MAX = 2147483647;
-    while (ms > INT32_MAX) {
-        await new Promise((resolve) => {
+js_util.Common.promise_sleep = function(ms) {
+    if (ms <= 0) {
+        return new Promise((resolve) => {
             let tid = setTimeout(() => {
                 clearTimeout(tid);
                 resolve();
-            }, INT32_MAX);
-        });
-        ms -= INT32_MAX;
-    }
-    if (ms > 0) {
-        await new Promise((resolve) => {
-            let tid = setTimeout(() => {
-                clearTimeout(tid);
-                resolve();
-            }, ms);
+            }, 0);
         });
     }
+    return new Promise(async (resolve_) => {
+        const INT32_MAX = 2147483647;
+        while (ms > INT32_MAX) {
+            await new Promise((resolve) => {
+                let tid = setTimeout(() => {
+                    clearTimeout(tid);
+                    resolve();
+                }, INT32_MAX);
+            });
+            ms -= INT32_MAX;
+        }
+        if (ms > 0) {
+            await new Promise((resolve) => {
+                let tid = setTimeout(() => {
+                    clearTimeout(tid);
+                    resolve();
+                }, ms);
+            });
+        }
+        resolve_();
+    });
 };
 
 js_util.Common.promise_timeout = function(promise_arg, timeout_msec) {

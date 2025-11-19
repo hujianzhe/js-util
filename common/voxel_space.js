@@ -16,14 +16,15 @@ js_util.Common.VoxelSpace = class VoxelSpace {
         for (let i = 0; i < 3; ++i) {
             const delta = this._max_v[i] - this._min_v[i];
             if (delta <= 0n || this._split_size[i] <= 0n) {
-                return null;
+                throw new Error('[VoxelSpace]: invalid constructor parameters');
             }
             this._dimension_node_max_sz[i] = delta / this._split_size[i];
             if (this._dimension_node_max_sz[i] * this._split_size[i] < delta) {
                 this._dimension_node_max_sz[i] += 1n;
             }
         }
-        this._dimension_stride0 = Number(this._dimension_node_max_sz[1] * this._dimension_node_max_sz[2]);
+        this._dimension_stride0_number = Number(this._dimension_node_max_sz[1] * this._dimension_node_max_sz[2]);
+        this._dimension_stride1_number = Number(this._dimension_node_max_sz[2]);
         this._nodes = null;
     }
 
@@ -76,7 +77,7 @@ js_util.Common.VoxelSpace = class VoxelSpace {
     }
 
     get_node_by_index(x, y, z) {
-        return x * this._dimension_stride0 + y * Number(this._dimension_node_max_sz[2]) + z;
+        return x * this._dimension_stride0_number + y * this._dimension_stride1_number + z;
     }
 
     get_node_min_position(x, y, z) {

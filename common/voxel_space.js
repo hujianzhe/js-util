@@ -23,15 +23,17 @@ js_util.Common.VoxelSpace = class VoxelSpace {
                 this._dimension_node_max_sz[i] += 1n;
             }
         }
-        this._dimension_stride0_number = Number(this._dimension_node_max_sz[1] * this._dimension_node_max_sz[2]);
+        this._dimension_node_max_sz_number = this._dimension_node_max_sz.map(Number);
+        this._dimension_stride0 = this._dimension_node_max_sz[1] * this._dimension_node_max_sz[2];
+        this._dimension_stride0_number = Number(this._dimension_stride0);
         this._dimension_stride1_number = Number(this._dimension_node_max_sz[2]);
+        this._nodes_length_number = Number(this._dimension_node_max_sz[0] * this._dimension_node_max_sz[1] * this._dimension_node_max_sz[2]);
         this._nodes = null;
     }
 
     get nodes() {
         if (!this._nodes) {
-            const cnt = this._dimension_node_max_sz[0] * this._dimension_node_max_sz[1] * this._dimension_node_max_sz[2];
-            this._nodes = new Array(Number(cnt)).fill(null);
+            this._nodes = new Array(this._nodes_length_number);
         }
         return this._nodes;
     }
@@ -76,8 +78,26 @@ js_util.Common.VoxelSpace = class VoxelSpace {
         return index_values;
     }
 
-    get_node_by_index(x, y, z) {
-        return x * this._dimension_stride0_number + y * this._dimension_stride1_number + z;
+    node_index_to_xyz(node_idx) {
+        if (node_idx < 0 || node_idx >= this._nodes_length_number) {
+            return null;
+        }
+        node_idx = BigInt(node_idx);
+        const x = node_idx / this._dimension_stride0;
+        node_idx %= this._dimension_stride0;
+        const y = node_idx / this._dimension_node_max_sz[2];
+        const z = node_idx % this._dimension_node_max_sz[2];
+        return [x, y, z].map(Number);
+    }
+
+    get_node_by_xyz(x, y, z) {
+        if (x < 0 || x >= this._dimension_node_max_sz_number[0] ||
+            y < 0 || y >= this._dimension_node_max_sz_number[1] ||
+            z < 0 || z >= this._dimension_node_max_sz_number[2])
+        {
+            return null;
+        }
+        return this.nodes[this._calculate_node_index_by_xyz(x, y, z)];
     }
 
     get_node_min_position(x, y, z) {
@@ -139,10 +159,14 @@ js_util.Common.VoxelSpace = class VoxelSpace {
                     this.min_v[1] + _vs.split_size[1],
                     this.min_v[2] + _vs.split_size[2]
                 ];
-                this.cur_node_idx = _vs.get_node_by_index(this.cur_idx[0], this.cur_idx[1], this.cur_idx[2]);
+                this.cur_node_idx = _vs._calculate_node_index_by_xyz(this.cur_idx[0], this.cur_idx[1], this.cur_idx[2]);
             }
         };
         finder.update();
         return finder;
+    }
+
+    _calculate_node_index_by_xyz(x, y, z) {
+        return x * this._dimension_stride0_number + y * this._dimension_stride1_number + z;
     }
 }

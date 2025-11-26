@@ -40,6 +40,7 @@ js_util.Common.VoxelSpace = class VoxelSpace {
     get min_v() { return this._min_v_number; }
     get max_v() { return this._max_v_number; }
     get split_size() { return this._split_size_number; }
+    get dimension_node_max_sz() { return this._dimension_node_max_sz_number; }
 
     node_indices_floor(p) {
         let index_values = [0, 0, 0];
@@ -100,12 +101,18 @@ js_util.Common.VoxelSpace = class VoxelSpace {
         return this.nodes[this._calculate_node_index_by_xyz(x, y, z)];
     }
 
-    get_node_min_position(x, y, z) {
-        return [
+    get_node_boundbox(x, y, z) {
+        const min_v = [
             this._min_v[0] + BigInt(x) * this._split_size[0],
             this._min_v[1] + BigInt(y) * this._split_size[1],
             this._min_v[2] + BigInt(z) * this._split_size[2]
-        ].map(Number);
+        ];
+        const max_v = [
+            min_v[0] + this._split_size[0],
+            min_v[1] + this._split_size[1],
+            min_v[2] + this._split_size[2]
+        ];
+        return [min_v.map(Number), max_v.map(Number)];
     }
 
     range_finder(min_v, max_v) {
@@ -130,8 +137,6 @@ js_util.Common.VoxelSpace = class VoxelSpace {
         const finder = {
             cur_idx: [_start_idx[0], _start_idx[1], _start_idx[2]],
             cur_node_idx: -1,
-            min_v: null,
-            max_v: null,
             next: function() {
                 ++this.cur_idx[2];
                 if (this.cur_idx[2] < _end_idx[2]) {
@@ -153,12 +158,6 @@ js_util.Common.VoxelSpace = class VoxelSpace {
                 return null;
             },
             update: function () {
-                this.min_v = _vs.get_node_min_position(this.cur_idx[0], this.cur_idx[1], this.cur_idx[2]);
-                this.max_v = [
-                    this.min_v[0] + _vs.split_size[0],
-                    this.min_v[1] + _vs.split_size[1],
-                    this.min_v[2] + _vs.split_size[2]
-                ];
                 this.cur_node_idx = _vs._calculate_node_index_by_xyz(this.cur_idx[0], this.cur_idx[1], this.cur_idx[2]);
             }
         };

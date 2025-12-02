@@ -91,6 +91,10 @@ js_util.Common.VoxelSpace = class VoxelSpace {
         return [x, y, z].map(Number);
     }
 
+    node_index_from_xyz(x, y, z) {
+        return x * this._dimension_stride0_number + y * this._dimension_stride1_number + z;
+    }
+
     get_node_by_xyz(x, y, z) {
         if (x < 0 || x >= this._dimension_node_max_sz_number[0] ||
             y < 0 || y >= this._dimension_node_max_sz_number[1] ||
@@ -98,7 +102,7 @@ js_util.Common.VoxelSpace = class VoxelSpace {
         {
             return null;
         }
-        return this.nodes[this._calculate_node_index_by_xyz(x, y, z)];
+        return this.nodes[this.node_index_from_xyz(x, y, z)];
     }
 
     get_node_boundbox(x, y, z) {
@@ -158,14 +162,10 @@ js_util.Common.VoxelSpace = class VoxelSpace {
                 return null;
             },
             update: function () {
-                this.cur_node_idx = _vs._calculate_node_index_by_xyz(this.cur_idx[0], this.cur_idx[1], this.cur_idx[2]);
+                this.cur_node_idx = _vs.node_index_from_xyz(this.cur_idx[0], this.cur_idx[1], this.cur_idx[2]);
             }
         };
         finder.update();
         return finder;
-    }
-
-    _calculate_node_index_by_xyz(x, y, z) {
-        return x * this._dimension_stride0_number + y * this._dimension_stride1_number + z;
     }
 }

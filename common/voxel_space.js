@@ -5,7 +5,6 @@ js_util.Common = js_util.Common || {};
 
 js_util.Common.VoxelSpace = class VoxelSpace {
     constructor(min_v, max_v, split_size) {
-        this.epsilon = 1e-6;
         this._min_v_number = [Math.floor(min_v[0]), Math.floor(min_v[1]), Math.floor(min_v[2])];
         this._max_v_number = [Math.ceil(max_v[0]), Math.ceil(max_v[1]), Math.ceil(max_v[2])];
         this._split_size_number = [Math.ceil(split_size[0]), Math.ceil(split_size[1]), Math.ceil(split_size[2])];
@@ -41,43 +40,6 @@ js_util.Common.VoxelSpace = class VoxelSpace {
     get max_v() { return this._max_v_number; }
     get split_size() { return this._split_size_number; }
     get dimension_node_max_sz() { return this._dimension_node_max_sz_number; }
-
-    node_indices_floor(p) {
-        let index_values = [0, 0, 0];
-        for (let i = 0; i < 3; i++) {
-            const pi = BigInt(Math.floor(p[i] - this.epsilon));
-            if (pi < this._min_v[i]) {
-                index_values[i] = 0;
-                continue;
-            }
-            index_values[i] = (pi - this._min_v[i]) / this._split_size[i];
-            if (index_values[i] > this._dimension_node_max_sz[i]) {
-                index_values[i] = this._dimension_node_max_sz[i];
-            }
-            index_values[i] = Number(index_values[i]);
-        }
-        return index_values;
-    }
-    
-    node_indices_ceil(p) {
-        let index_values = [0, 0, 0];
-        for (let i = 0; i < 3; i++) {
-            const pi = BigInt(Math.ceil(p[i]));
-            if (pi < this._min_v[i]) {
-                index_values[i] = 0;
-                continue;
-            }
-            index_values[i] = (pi - this._min_v[i]) / this._split_size[i];
-            if (index_values[i] < this._dimension_node_max_sz[i]) {
-                index_values[i] += 1n;
-            }
-            else {
-                index_values[i] = this._dimension_node_max_sz[i];
-            }
-            index_values[i] = Number(index_values[i]);
-        }
-        return index_values;
-    }
 
     node_index_to_xyz(node_idx) {
         if (node_idx < 0 || node_idx >= this._nodes_length_number) {
@@ -120,11 +82,12 @@ js_util.Common.VoxelSpace = class VoxelSpace {
     }
 
     range_finder(min_v, max_v) {
-        return this._finder(this.node_indices_floor(min_v), this.node_indices_ceil(max_v));
+        const [s, e] = this._node_range_indices(min_v, max_v);
+        return this._finder(s.map(Number), e.map(Number));
     }
 
     all_finder() {
-        return this._finder([0, 0, 0], this._dimension_node_max_sz.map(Number));
+        return this._finder([0, 0, 0], this._dimension_node_max_sz_number);
     }
 
     _finder(_start_idx, _end_idx) {
@@ -167,5 +130,50 @@ js_util.Common.VoxelSpace = class VoxelSpace {
         };
         finder.update();
         return finder;
+    }
+
+    static _calculate_index(min_v, sz, count, v) {
+        let r = [0n, 0n];
+        const vl = BigInt(Math.floor(v));
+        if (vl < min_v) {
+            return r;
+        }        
+        const vh = BigInt(Math.ceil(v));
+        let d;
+        if (vl == vh) {
+            d = vl - min_v;
+            r[0] = d / sz;
+            r[1] = r[0] + 1n;
+            if (r[0] > 0 && 0 == d % sz) {
+                r[0] -= 1n;
+            }
+        }
+        else {
+            d = vl - min_v;
+            r[0] = d / sz;
+            d = vh - min_v;
+            r[1] = d / sz;
+            if (r[1] <= r[0]) {
+                r[1] = r[0] + 1n;
+            }
+        }
+        if (r[0] > count) {
+            r[0] = count;
+        }
+        if (r[1] > count) {
+            r[1] = count;
+        }
+        return r;
+    }
+    
+    _node_range_indices(p1, p2) {
+        let s = [0n, 0n, 0n], e = [0n, 0n, 0n];
+        for (let i = 0; i < 3; ++i) {
+            const r1 = VoxelSpace._calculate_index(this._min_v[i], this._split_size[i], this._dimension_node_max_sz[i], p1[i]);
+            const r2 = VoxelSpace._calculate_index(this._min_v[i], this._split_size[i], this._dimension_node_max_sz[i], p2[i]);
+            s[i] = (r1[0] < r2[0] ? r1[0]: r2[0]);
+            e[i] = (r1[1] > r2[1] ? r1[1]: r2[1]);
+        }
+        return [s, e];
     }
 }

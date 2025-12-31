@@ -38,10 +38,12 @@ js_util.DOM.ajax_send = function(xhttp, data, timeout_msec = -1) {
 	});
 };
 
-js_util.DOM.script_load_async = function (url, opts = {
-	timeout_msec : -1,
-	execute: true
-}) {
+js_util.DOM.script_load_async = function (url, opts = {}) {
+	opts = {
+		timeout_msec : -1,
+		execute: true,
+		...opts
+	};
 	return new Promise((resolve) => {
 		let script = document.createElement('script');
 		script.type = 'text/javascript';

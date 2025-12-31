@@ -113,7 +113,11 @@ js_util.Common.ResolveSet = class ResolveSet {
         };
     }
 
-    expect(resolve_id, opts = { timeout_msec : 5000 }) {
+    expect(resolve_id, opts = {}) {
+        opts = {
+            timeout_msec : 5000,
+            ...opts
+        };
         resolve_id = BigInt(resolve_id);
         if (this.resolve_map.has(resolve_id)) {
             return null;

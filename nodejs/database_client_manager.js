@@ -18,8 +18,8 @@ class DatabaseClientPartManager {
         void partName;
         if (typeof value === 'string') {
             let hash = 5381;
-            for (let i = 0; i < string.length; i++) {
-                hash = ((hash << 5) + hash) + string.charCodeAt(i);
+            for (let i = 0; i < value.length; i++) {
+                hash = ((hash << 5) + hash) + value.charCodeAt(i);
                 hash &= 0xFFFFFFFF;
             }
             return hash % partMaxNumber;

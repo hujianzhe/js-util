@@ -85,5 +85,8 @@ js_util.Common.buffer_to_string = function(dv) {
 };
 
 js_util.Common.string_trim = function(str) {
+	if (str.trim) {
+		return str.trim();
+	}
 	return str.replace(/(^\s*)|(\s*$)/g, "");
 };

@@ -22,13 +22,13 @@ class DatabaseClientPartManager {
                 hash = ((hash << 5) + hash) + value.charCodeAt(i);
                 hash &= 0xFFFFFFFF;
             }
-            return hash % partMaxNumber;
+            return Math.abs(hash % partMaxNumber);
         }
         else if (typeof value === 'bigint') {
-            return value % BigInt(partMaxNumber);
+            return Math.abs((value % BigInt(partMaxNumber)).toString());
         }
         else if (typeof value === 'number') {
-            return Number.parseInt(value) % partMaxNumber;
+            return Math.abs(Number.parseInt(value) % partMaxNumber);
         }
         else {
             throw new Error(`DatabaseClientPartManager.defaultConvertValueToPartIdx can't convert ${value}`);

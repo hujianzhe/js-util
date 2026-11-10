@@ -6,8 +6,10 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
         super(schema, start_num, end_num);
         this.url = url;
         this.connOpts = conn_opt || {};
+		/*
         this.connOpts.useNewUrlParser = true;
         this.connOpts.useUnifiedTopology = true;
+		*/
         if (!this.connOpts.serverSelectionTimeoutMS) {
             this.connOpts.serverSelectionTimeoutMS = 5000;
         }
@@ -15,9 +17,11 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
             this.connOpts.socketTimeoutMS = 5000;
         }
         this.transOpts = trans_opt ? trans_opt : {
-            w: "majority",
-            j: false,
-            wtimeout: 5000
+            writeConcern: {
+                w: "majority",
+                journal: true,
+                wtimeoutMS: 5000
+            }
         };
         this._client = null;
         this._connectPromise = null;

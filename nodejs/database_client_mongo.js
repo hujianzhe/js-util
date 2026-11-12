@@ -24,6 +24,7 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
             }
         };
         this._client = null;
+        this._isTransactionSupported = false;
         this._connectPromise = null;
         this._connectResolve = null;
     }
@@ -50,7 +51,12 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
             return null;
         }
         try {
-            await session.withTransaction(proc, this.transOpts);
+            if (this._isTransactionSupported) {
+                await session.withTransaction(proc, this.transOpts);
+            }
+            else {
+                await proc();
+            }
         }
         catch (e) {
             throw e;
@@ -79,10 +85,13 @@ class DatabaseMongodbClientPart extends DatabaseClientPart {
                     if (!self._connectResolve) {
                         return;
                     }
+                    const hello = await client.db('admin').command({ hello: 1 });
+                    self._isTransactionSupported = Boolean(hello.setName || hello.msg === 'isdbgrid');
                     self._client = client;
                     self._afterConnect(client);
                 }
                 catch (e) {
+                    await client.close();
                     self._afterConnect(null);
                     self.err = e;
                 }
